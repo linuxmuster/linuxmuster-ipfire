@@ -1,0 +1,7 @@
+DOMAINNAME=@@domainname@@
+THEME=ipfire
+LANGUAGE=de
+RRDLOG=/var/log/rrd
+HOSTNAME=ipfire
+KEYMAP=/lib/kbd/keymaps/i386/qwertz/de-latin1-nodeadkeys.map.gz
+TIMEZONE=/usr/share/zoneinfo/posix/Europe/Berlin

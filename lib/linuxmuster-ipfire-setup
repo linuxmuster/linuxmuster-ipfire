@@ -1,0 +1,83 @@
+#!/bin/sh
+#
+# setup IPfire for linuxmuster.net
+#
+# <thomas@linuxmuster.net>
+# 16.01.2013
+# GPL v3
+#
+
+# where to find setup stuff
+
+SETUPDIR="/var/linuxmuster"
+SETTINGS="$SETUPDIR/.settings"
+TPLDIR="$SETUPDIR/templates"
+ETHSETTINGS="/var/ipfire/ethernet/settings"
+
+# test for mandatory stuff
+for i in "$SETUPDIR" "$SETTINGS" "$TPLDIR"; do
+ if [ ! -e "$i" ]; then
+  echo "$i not found! Aborting installation!"
+  exit 1
+ fi
+done
+
+# read setup values
+. "$SETTINGS"
+
+cd "$TPLDIR" || exit 1
+
+# patch config templates
+for i in `find . -type f | sed 's|^./||'`; do
+ t=/var/ipfire/$i
+ [ -s "$t" -a ! -s "$t.orig" ] && cp "$t" "$t.orig"
+ sed -e "s|@@servername@@|$servername|g
+         s|@@serverip@@|$serverip|g
+         s|@@internalnet@@|$internalnet|g
+         s|@@ipcopip@@|$ipcopip|g
+         s|@@ipcopblue@@|$ipcopblue|g
+         s|@@ipcoporange@@|$ipcoporange|g
+         s|@@ipcopovpn@@|$ipcopovpn|g
+         s|@@domainname@@|$domainname|g
+         s|@@basedn@@|$basedn|g
+         s|@@location@@|$location|g
+         s|@@country@@|$country|g
+         s|@@state@@|$state|g
+         s|@@schoolname@@|$schoolname|g
+         s|@@admin@@|$admin|g" "$i" > "$t"
+done
+
+# patch ethernet settings with blue and orange net adresses
+[ -s "$ETHSETTINGS.orig" ] || cp "$ETHSETTINGS" "$ETHSETTINGS.orig"
+sed -e "s/^BLUE_ADDRESS=.*/BLUE_ADDRESS=$ipcopblue.254/
+        s/^BLUE_NETADDRESS=.*/BLUE_NETADDRESS=$ipcopblue.0/
+        s/^BLUE_NETMASK=.*/BLUE_NETMASK=255.255.255.0/
+        s/^BLUE_BROADCAST=.*/BLUE_BROADCAST=$ipcopblue.255/
+        s/^ORANGE_ADDRESS=.*/ORANGE_ADDRESS=$ipcoporange.254/
+        s/^ORANGE_NETADDRESS=.*/ORANGE_NETADDRESS=$ipcoporange.0/
+        s/^ORANGE_NETMASK=.*/ORANGE_NETMASK=255.255.255.0/
+        s/^ORANGE_BROADCAST=.*/ORANGE_BROADCAST=$ipcoporange.255/" -i "$ETHSETTINGS"
+
+# move server root's ssh key in place
+[ -d /root/.ssh ] || mkdir /root/.ssh
+[ -s "$SETUPDIR/authorized_keys" ] && mv "$SETUPDIR/authorized_keys" /root/.ssh/authorized_keys
+
+# import ipcop made ovpn certs & keys
+if [ -s "$TPLDIR/ovpn/ovpnconfig" ]; then
+ for i in openssl/ovpn.cnf server.conf settings; do
+  sed -e "s|/var/ipcop|/var/ipfire|g" -i "/var/ipfire/ovpn/$i"
+ done
+else # creating OpenVPN certificates and keys
+ "$SETUPDIR/create-ovpn-certs"
+fi
+
+# repair permissions
+"$SETUPDIR/repair.sh"
+
+# remove settings file
+rm -f "$SETTINGS"
+
+# IPFire has to be rebooted
+echo "Reboot IPFire now!"
+
+exit 0

@@ -1,0 +1,16 @@
+Source: linuxmuster-ipfire
+Section: debian-linuxmuster
+Priority: optional
+Maintainer: Thomas Schmitt <thomas@linuxmuster.net>
+Build-Depends: debhelper (>= 5.0.0)
+Standards-Version: 3.6.0
+
+Package: linuxmuster-ipfire
+Architecture: all
+Priority: optional
+Depends: ${shlibs:Depends}, ${misc:Depends}, linuxmuster-base (>=6.0.1)
+Recommends: screen
+Conflicts: linuxmuster-ipcop
+Essential: no
+Description: firewall configuration scripts for linuxmuster-net
+ This package contains firewall configuration scripts for linuxmuster-net.

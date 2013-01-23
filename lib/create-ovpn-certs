@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# creating openvpn certificates
+# 16.01.2013
+# Thomas Schmitt <thomas@linuxmuster.net>
+#
+
+# OpenVPN root dir
+ovpnroot="/var/ipfire/ovpn"
+
+# exit if OpenVPN is not installed
+[ -d "$ovpnroot" ] || exit 1
+
+echo
+echo "############# creating openvpn certificates and keys"
+echo
+
+echo "############# cleaning up"
+rm -f $ovpnroot/ca/*.*
+rm -f $ovpnroot/certs/*
+rm -f $ovpnroot/ovpnconfig
+touch $ovpnroot/ovpnconfig
+touch $ovpnroot/certs/index.txt
+echo "01" > $ovpnroot/certs/serial
+
+echo
+echo "############# reading settings"
+. $ovpnroot/settings
+
+echo
+echo "############# generating root certificate"
+echo -e "$ROOTCERT_COUNTRY\n$ROOTCERT_STATE\n$ROOTCERT_CITY\n$ROOTCERT_ORGANIZATION\n$ROOTCERT_OU\n$ROOTCERT_ORGANIZATION\n$ROOTCERT_EMAIL\n\n\n" | \
+openssl req -x509 -nodes -rand /proc/interrupts:/proc/net/rt_cache \
+	-days 999999 -newkey rsa:2048 \
+	-keyout "$ovpnroot/ca/cakey.pem" \
+	-out "$ovpnroot/ca/cacert.pem" \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+echo
+
+echo
+echo "############# generating server certificate"
+echo -e "$ROOTCERT_COUNTRY\n$ROOTCERT_STATE\n$ROOTCERT_CITY\n$ROOTCERT_ORGANIZATION\n$ROOTCERT_OU\n$ROOTCERT_HOSTNAME\n$ROOTCERT_EMAIL\n\n\n" | \
+openssl req -nodes -rand /proc/interrupts:/proc/net/rt_cache \
+	-newkey rsa:1024 \
+	-keyout "$ovpnroot/certs/serverkey.pem" \
+	-out "$ovpnroot/certs/serverreq.pem" \
+	-extensions server \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+echo
+
+echo
+echo "############# signing server certificate"
+openssl ca -days 999999 \
+	-batch -notext \
+	-in "$ovpnroot/certs/serverreq.pem" \
+	-out "$ovpnroot/certs/servercert.pem" \
+	-extensions server \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+echo
+
+echo
+echo "############# creating crl"
+openssl ca -gencrl \
+	-out "$ovpnroot/crls/cacrl.pem" \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+echo
+
+echo
+echo "############# generating diffie hellmann parameter"
+openssl dhparam -rand /proc/interrupts:/proc/net/rt_cache \
+       -out "$ovpnroot/ca/dh1024.pem" \
+       1024
+echo
+
+echo
+echo "############# setting permissions"
+chown nobody:nobody $ovpnroot/* -R
+chmod 600 $ovpnroot/ca/cakey.pem
+chmod 600 $ovpnroot/certs/serverkey.pem
+echo
+
+echo "Done!"
+
+exit 0

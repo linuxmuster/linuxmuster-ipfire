@@ -1,0 +1,2 @@
+1,0,tcp,2222,@@serverip@@,22,on,0.0.0.0,0.0.0.0/0,SSH für Server
+2,0,tcp,443,@@serverip@@,443,off,0.0.0.0,0.0.0.0/0,HTTPS für Server

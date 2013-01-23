@@ -1,0 +1,302 @@
+#!/bin/bash
+# MOD Addons Server Ver 2.3 for IPCop 1.3.0/1.4.0
+# 02 Octoboer 2003 By Pat Benner <amigatec@olp.net>
+# MOD Addons Server Ver 2.3 Library File.
+# 10 November 2003 By Duncan Reed <der1004@sourceforge.com>
+#
+# $Id: library.addons,v 1.1 2006/01/28 11:01:42 dotzball Exp $
+#
+
+export ADDONSVERSION=2.3
+export ADDONSBUILD=2
+export IPCOPVERSION=$(grep '^$General::version \{0,\}= \{0,\}.1\.[3-4]\.[0-9].*;$' /var/ipcop/general-functions.pl | cut -d= -f2 | tr -d [:blank:]\;\' | sed 's/1\.4\.[0-9]\+/1.4.0/')
+export DEVELOP=1
+export TESTVERSION=0
+#### END variables ####
+
+isver14()
+{
+	if [ `echo $IPCOPVERSION | grep "1.4.0"` ]
+	then
+		return 0
+	else
+		return 1
+	fi
+}
+
+isver13()
+{
+	if [ `echo $IPCOPVERSION | grep "1.3.0"` ]
+	then
+		return 0
+	else
+		return 1
+	fi
+}
+
+addto_lang()
+{
+	# Addon Server 2.1:
+	# Parameter 1 (list of) changes file(s) <lang>.<MOD>[,<lang>.<MOD>[...]] e.g. en.addons
+	# 	Note: file must contain an enclosing comment (Added for <MOD>, End <MOD>) for removefrom_lang
+	# Addon Server 2.2+:
+	# Parameter 1: (list of) changes file(s) <lang>.<MOD>[,<lang>.<MOD>[...]] e.g. en.addons,de.addons
+	# Parameter 2: Name of Addon that is being added e.g. SETI Addon (used by removefrom_lang)
+	# Parameter 3 [PATH] of lang change files e.g. langs/
+
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\" \"$3\"
+	current_dir=$PWD
+	# Change directory ?
+	if [ -d "$3" ]
+       	then
+		cd $3
+	fi
+
+	# Process Change Files
+	for langlist in `echo "$1" | tr "," " "`
+	do
+		langfile=`echo $langlist |cut -d. -f1`.pl
+
+		# New sytle language addons ?
+		if [ "$2" ]
+		then
+			# Apply Lang Additions
+			if [ -e /var/ipcop/addon-lang ]
+			then
+				# use new cachefile mechanism
+				MOD_NAME=$(echo "$2" | sed -e 's/\s//g')
+				langfile=$MOD_NAME.$langfile
+				echo "# Added for $2" > /var/ipcop/addon-lang/$langfile
+				echo "%tr = (" >> /var/ipcop/addon-lang/$langfile
+				echo "%tr," >> /var/ipcop/addon-lang/$langfile
+				cat $langlist >> /var/ipcop/addon-lang/$langfile
+				echo ");" >> /var/ipcop/addon-lang/$langfile
+				echo "# End $2" >> /var/ipcop/addon-lang/$langfile
+			else
+				# alter ipcop langfile like in pre 1.4.7 ipcop
+				echo "# Added for $2" >> /var/ipcop/langs/$langfile
+				echo "%tr = (" >> /var/ipcop/langs/$langfile
+				echo "%tr," >> /var/ipcop/langs/$langfile
+				cat $langlist >> /var/ipcop/langs/$langfile
+				echo ");" >> /var/ipcop/langs/$langfile
+				echo "# End $2" >> /var/ipcop/langs/$langfile
+			fi
+		else
+			echo "Old style lang addons"
+			cat /var/ipcop/langs/$langfile |
+			sed -e '/^); \{0,\}$/ {r '$langlist'
+a\
+);
+d
+}' > $langfile
+			cp $langfile /var/ipcop/langs/$langfile
+			rm $langfile
+		fi
+	done
+
+	if [ -e /var/ipcop/addon-lang ]
+	then
+		# rebuild the big cachefiles
+		perl -e "require '/var/ipcop/lang.pl'; &Lang::BuildCacheLang"
+	fi
+
+	cd $current_dir
+	return 0
+}
+
+addto_file()
+{
+	# Parameter 1 dir e.g. /var/ipcop/backup/
+	# Parameter 2 original file e.g. exclude.system
+	# Parameter 3 changes file e.g. exclude.addons
+	# Parameter 4 search pattern e.g. /\/var\/ipcop\/red/
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\" \"$3\" \"$4\"
+
+	cat $1/$2 | sed -e ''$4' r '$3'' > $2
+	cp $2 $1/$2
+	rm $2
+	return 0
+}
+
+addto_filetail() # New in 2.3
+{
+	# Function to add changes file to bottom of another file
+	# Parameter 1 dir e.g. /var/ipcop/
+	# Parameter 2 original file e.g. header.pl
+	# Parameter 3 changes file e.g. misc/header130_1.addons
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\" \"$3\" \"$4\"
+
+	cat $3 >> $1/$2
+
+	return 0
+}
+
+addto_filehead() # New in 2.3
+{
+	# Function to add file to top of another file
+#TODO repatch code:	record_filechange $FUNCNAME $*
+
+	return 0
+}
+
+addto_header()
+{
+	# Parameter 1 dir e.g. /var/ipcop/
+	# Parameter 2 original file e.g. header.pl
+	# Parameter 3 changes file e.g. header.addons
+	# Parameter 4 search pattern e.g. /\/cgi-bin\/backup\.cgi/
+	# Parameter 5 ipcop version e.g. 1.3.0 or 1.4.0
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\" \"$3\" \"$4\" \"$5\"
+
+	if [ `echo $IPCOPVERSION | grep "$5"` ]
+	then
+		cat $1/$2 | sed -e ''$4' r '$3'' > $2
+		cp $2 $1/$2
+		rm $2
+		return 0
+	else
+		return 1
+	fi
+}
+
+replacein_file() # New in 2.3
+{
+	# Do a search and replace of string
+	# Occurance X or all
+#TODO repatch code:	record_filechange $FUNCNAME $*
+
+	return 0
+}
+
+replace_file() # New in 2.3
+{
+	# function to replace entire ipcop file with a new file
+	# high ish risk
+#TODO repatch code:	record_filechange $FUNCNAME $*
+
+	return 0
+}
+
+removefrom_file()
+{
+	# Parameter 1 dir e.g. /home/http/cgi-bin/
+	# Parameter 2 original file e.g. status.cgi
+	# Parameter 3 search pattern e.g. /Added for Addons/,/End Addons/
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\" \"$3\"
+
+	cat $1/$2 | sed -e "$3"d > $2
+	cp $2 $1/$2
+	rm $2
+	return 0
+}
+
+removefrom_lang()
+{
+	# Parameter 1 (list of) language(s) to edit <lang>[,<lang>[...]] e.g. en,de
+	# Parameter 2 Name of Addon that is being removed e.g. SETI Addon (same as addto_lang)
+#TODO repatch code:	record_filechange $FUNCNAME \"$1\" \"$2\"
+
+	for langlist in `echo "$1" | tr "," " "`
+	do
+		langfile=$langlist.pl
+		MOD_NAME=$(echo "$2" | sed -e 's/\s//g')
+		# we do not test for addon-lang dir, 
+		# better test for individual lang file
+		if [ -e /var/ipcop/addon-lang/$MOD_NAME.$langfile ]
+		then
+			rm /var/ipcop/addon-lang/$MOD_NAME.$langfile
+		else
+			cat /var/ipcop/langs/$langfile |
+				sed -e "/Added for $2/,/End $2/"d > $langfile
+			cp $langfile /var/ipcop/langs/$langfile
+			rm $langfile
+		fi
+	done
+
+	if [ -e /var/ipcop/addon-lang ]
+	then
+		# rebuild the big cachefiles
+		perl -e "require '/var/ipcop/lang.pl'; &Lang::BuildCacheLang"
+	fi
+
+	return 0
+}
+
+check_depend()
+{
+	# Parameter 1 <MOD>, is name of pre-req MOD to check.
+	# Parameter 2 <MOD name>, name of MOD being installed.
+	# Parameter 3 [UPDATE], this MOD (parameter 2) is an update to pre-req MOD (parameter 1)
+	# Returns: 0 = success, 1 = Failed Dependancy Check , 2 = Too many matches returned
+
+	if [ `cut -d\| -f1 /var/ipcop/addons/installed | egrep -c "$1"\(-.*\)?$` -eq 1 ]
+	then
+		# 'if' above is version independant but version written to file is dependant. So prereq variable of full mod pre-req name is created
+		prereq=`cut -d\| -f1 /var/ipcop/addons/installed | egrep "$1"\(-.*\)?$`
+		echo "Dependancy $prereq is installed"
+		# Is this an update mod e.g. a LANGPAK or not
+		if [ "$3" = 'UPDATE' ]
+		then
+			echo "$2|$prereq|UPDATE" >> /var/ipcop/addons/dependancy
+		else
+			echo "$2|$prereq" >> /var/ipcop/addons/dependancy
+		fi
+		return 0
+	elif [ `cut -d\| -f1 /var/ipcop/addons/installed | egrep -c "$1"\(-.*\)?$` -gt 1 ]
+	then
+		echo "Too many hits for $1!"
+		return 2
+	else
+		echo "Failed dependancy check for $1"
+		return 1
+	fi
+}
+
+correct_backupfiles()
+{
+	# remove all blank lines in backup files
+
+	sed -e "/^[^-\*\.a-zA-Z0-9_\/]*$/"d /var/ipcop/backup/exclude.system > tmpfile
+	cp tmpfile /var/ipcop/backup/exclude.system
+
+	sed -e "/^[^-\*\.a-zA-Z0-9_\/]*$/"d /var/ipcop/backup/include.system > tmpfile
+	cp tmpfile /var/ipcop/backup/include.system
+
+	sed -e "/^[^-\*\.a-zA-Z0-9_\/]*$/"d /var/ipcop/backup/exclude.user > tmpfile
+	cp tmpfile /var/ipcop/backup/exclude.user
+
+	sed -e "/^[^-\*\.a-zA-Z0-9_\/]*$/"d /var/ipcop/backup/include.user > tmpfile
+	cp tmpfile /var/ipcop/backup/include.user
+
+	rm tmpfile
+	return 0
+}
+
+record_filechange() # New in 2.3
+{
+	# This is the new function to record file changes for addons server self repair
+	if [ "$POSTPATCH" ] || [ "$UNINSTALLER" ]
+	then
+		return 0
+	fi
+
+	if [ ! "$PATCHFILE" ]
+	then
+		if [ $(basename $0) = "addoncfg" ]
+		then
+		   PATCHFILE="addons"
+		else
+		   PATCHFILE=$(cat ./information | cut -f1 -d"|")
+		fi
+
+		if [ ! "$PATCHFILE" ]
+		then
+		   echo "Error: Failed to work out Patch recovery filename"
+		   return 1
+		fi
+	fi
+
+	echo $* >> /var/ipcop/addons/patchfiles/$PATCHFILE
+
+	return 0
+}

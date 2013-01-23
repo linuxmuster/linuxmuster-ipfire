@@ -1,0 +1,120 @@
+#!/bin/sh
+#
+# creating openvpn client certificate
+# this is not invoked directly but per ssh from the server
+#
+# <thomas@linuxmuster.net>
+# 16.01.2013
+# GPL v3
+#
+
+# OpenVPN root dir
+ovpnroot="/var/ipfire/ovpn"
+ovpnconfig="$ovpnroot/ovpnconfig"
+
+# exit if OpenVPN is not installed
+[ -d "$ovpnroot" ] || exit 1
+
+username=$1
+cn=${2//_/ }
+[ -z "$cn" ] && cn=$username
+days=$3
+[ -z "$days" ] && days=365
+
+usage() {
+	echo "Usage: create-client-cert <username>"
+	echo "Password is read from /tmp/<username>.cred"
+	exit 1
+}
+
+[ -z "$username" ] && usage
+
+# read uploaded password file
+[ -e "/tmp/$username.cred" ] || usage
+password=`cat /tmp/$username.cred`
+rm /tmp/$username.cred
+
+if grep -q ",$username," $ovpnconfig; then
+	echo "There is already a certificate for $username!"
+	exit 1
+fi
+
+echo
+echo "############# creating openvpn client certificate"
+echo
+
+echo
+echo "############# reading settings"
+. $ovpnroot/settings
+
+echo
+echo "############# generate certificate for $username"
+echo -e "$ROOTCERT_COUNTRY\n$ROOTCERT_STATE\n$ROOTCERT_CITY\n \
+	$ROOTCERT_ORGANIZATION\n\n$cn\n\n\n\n" | \
+openssl req -nodes -rand /proc/interrupts:/proc/net/rt_cache \
+	-newkey rsa:1024 \
+	-keyout "$ovpnroot/certs/${username}key.pem" \
+	-out "$ovpnroot/certs/${username}req.pem" \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+status=$?
+echo
+
+echo
+echo "############# signing certificate for $username"
+openssl ca -days $days \
+	-batch -notext \
+	-in "$ovpnroot/certs/${username}req.pem" \
+	-out "$ovpnroot/certs/${username}cert.pem" \
+	-config "$ovpnroot/openssl/ovpn.cnf"
+status=$?
+rm $ovpnroot/certs/${username}req.pem
+echo
+
+echo
+echo "############# creating the pkcs12 file for $username"
+openssl pkcs12 -export \
+	-inkey "$ovpnroot/certs/${username}key.pem" \
+	-in "$ovpnroot/certs/${username}cert.pem" \
+	-name "$cn" \
+	-passout "pass:$password" \
+	-certfile "$ovpnroot/ca/cacert.pem" \
+	-caname "$ROOTCERT_ORGANIZATION" \
+	-out "$ovpnroot/certs/${username}.p12"
+status=$?
+rm $ovpnroot/certs/${username}key.pem
+
+echo
+if [ "$status" = "0" ]; then
+	echo "############# writing $ovpnconfig"
+	if [ -s "$ovpnconfig" ]; then
+		lastnr=`sort -rn $ovpnconfig | grep -m1 ,cert | cut -f1 -d,`
+		let newnr=lastnr+1
+	else
+		newnr=1
+	fi
+	echo "$newnr,off,$username,$cn,host,cert" >> $ovpnconfig
+
+	# sorting by nr
+	#sort -k 3 -t , $ovpnconfig > $ovpnconfig.tmp
+	sort -n $ovpnconfig > $ovpnconfig.tmp
+	mv $ovpnconfig.tmp $ovpnconfig
+
+	echo
+	echo "############# setting permissions"
+	chown nobody:nobody $ovpnroot/certs/${username}*.*
+	chown nobody:nobody $ovpnconfig
+	echo
+
+	echo "Done!"
+else
+	echo "An error occured. Deleting certificate files!"
+	rm $ovpnroot/certs/${username}*.*
+fi
+
+# cleaning up
+pemnr=`grep "CN=$username - " $ovpnroot/certs/index.txt | awk '{ print $3 }'`
+if [ -e "$ovpnroot/certs/$pemnr.pem" ]; then
+	rm $ovpnroot/certs/$pemnr.pem
+fi
+
+exit $status
