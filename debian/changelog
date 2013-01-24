@@ -2,4 +2,4 @@ linuxmuster-ipfire (1.0.0-0ubuntu0) precise; urgency=low
 
   * Initial package based on linuxmuster-ipcop.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Sun, 20 Jan 2013 15:28:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 24 Jan 2013 21:10:59 +0100
