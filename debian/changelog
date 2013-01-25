@@ -1,3 +1,11 @@
+linuxmuster-ipfire (1.0.1-0ubuntu0) precise; urgency=low
+
+  * added ipfire script reload_proxy.sh, does squid.conf modifications
+    according to banned mac acls and reloads the service.
+  * renamed ipfire script reloadbot.sh to reload_outgoing.sh.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 25 Jan 2013 14:37:58 +0100
+
 linuxmuster-ipfire (1.0.0-0ubuntu0) precise; urgency=low
 
   * Initial package based on linuxmuster-ipcop.
