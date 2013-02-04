@@ -4,10 +4,11 @@
 #
 # (c) written from scratch
 #
-# 15.01.2013
+# 04.02.2013
 # Thomas Schmitt <thomas@linuxmuster.net>
 
 use strict;
+use File::Copy;
 
 my $c;
 my $found;
@@ -49,7 +50,8 @@ if ($unfiltered_ips) {
 close TMP;
 
 # move temp file
-rename ($settingstmp, $settings) or die "Cannot write $settings: $!";
+copy($settingstmp, $settings) or die "Cannot write $settings: $!";
+unlink($settingstmp) or die "Cannot delete $settingstmp: $!";
 
 # change owner and group to nobody
 system("chown nobody:nobody $settings");
@@ -177,7 +179,8 @@ close CONF;
 close TMP;
 
 # move temp file
-rename ($squidGuardConftmp, $squidGuardConf) or die "Cannot write $squidGuardConf: $!";
+copy($squidGuardConftmp, $squidGuardConf) or die "Cannot write $squidGuardConf: $!";
+unlink($squidGuardConftmp) or die "Cannot delete $squidGuardConftmp: $!";
 
 # change owner and group to nobody
 system("chown nobody:nobody $squidGuardConf");

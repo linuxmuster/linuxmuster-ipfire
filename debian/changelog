@@ -1,3 +1,10 @@
+linuxmuster-ipfire (1.0.2-0ubuntu0) precise; urgency=low
+
+  * linuxmuster-unfilter.pl: rename over partitions quits with "Invalid cross-device
+    link", uses now copy & unlink instead (closes #71).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 04 Feb 2013 13:19:08 +0100
+
 linuxmuster-ipfire (1.0.1-0ubuntu0) precise; urgency=low
 
   * added ipfire script reload_proxy.sh, does squid.conf modifications
