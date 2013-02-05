@@ -3,7 +3,7 @@
 # setup IPfire for linuxmuster.net
 #
 # <thomas@linuxmuster.net>
-# 16.01.2013
+# 05.02.2013
 # GPL v3
 #
 
@@ -39,6 +39,7 @@ for i in `find . -type f | sed 's|^./||'`; do
          s|@@ipcoporange@@|$ipcoporange|g
          s|@@ipcopovpn@@|$ipcopovpn|g
          s|@@domainname@@|$domainname|g
+         s|@@serverexternname@@|$serverexternname|g
          s|@@basedn@@|$basedn|g
          s|@@location@@|$location|g
          s|@@country@@|$country|g
