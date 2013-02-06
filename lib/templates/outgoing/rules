@@ -1,3 +1,3 @@
 ALLOW;on;red;all;Firewall darf raus;;;;;inaktiv;on;on;on;on;on;on;on;00:00;00:00;
 ALLOW;on;ip;all;Server darf raus;@@serverip@@;;;;inaktiv;on;on;on;on;on;on;on;00:00;00:00;
-ALLOW;on;green;tcp;Aus GRÜN erlaubte Ports;;allowedmacs;;ftp,ftp-data,ssh,https;aktiv;on;on;on;on;on;on;on;00:00;00:00;
+ALLOW;on;allowedmacs;all;Aus GRÜN erlaubte Ports;;;;ftp,ftp-data,ssh,https;aktiv;on;on;on;on;on;on;on;00:00;00:00;

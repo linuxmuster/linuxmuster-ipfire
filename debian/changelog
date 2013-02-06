@@ -1,8 +1,9 @@
 linuxmuster-ipfire (1.0.3-0ubuntu0) precise; urgency=low
 
   * linuxmuster-ipfire-setup uses now serverexternname for openvpn certificate.
+  * fixed outgoing rules template (closes #73).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 04 Feb 2013 13:19:08 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 06 Feb 2013 20:21:40 +0100
 
 linuxmuster-ipfire (1.0.2-0ubuntu0) precise; urgency=low
 

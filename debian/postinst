@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 16.01.2013
+# 06.02.2013
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -53,9 +53,25 @@ case "$1" in
 
         # update linuxmuster.net scripts on IPFire
         if exec_ipcop /bin/ls /var/linuxmuster; then
-         echo "Uploading linuxmuster.net configuration scripts to IPFire ..."
-         exec_ipcop /bin/rm -rf /var/linuxmuster
-         put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster
+         echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
+         exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
+         put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
+         if [ "$RC" = "0" ]; then
+          echo "Ok!"
+          # repair outgoing rules file if necessary
+          if ! exec_ipcop "/bin/grep \^\"ALLOW\;on\;allowedmacs\;\" /var/ipfire/outgoing/rules"; then
+           echo -n "Repairing outgoing rules ... "
+           exec_ipcop "/bin/sed -e \"s|@@serverip@@|$serverip|\" /var/linuxmuster/templates/outgoing/rules > /var/ipfire/outgoing/rules" ; RC="$?"
+           if [ "$RC" = "0" ]; then
+            exec_ipcop /var/linuxmuster/reload_outgoing.sh
+            echo "Ok!"
+           else
+            echo "Failed!"
+           fi
+          fi
+         else
+          echo "Failed!"
+         fi
         else
 	 echo "IPFire is not yet configured!"
 	 echo "You have to invoke the setup script"

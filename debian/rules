@@ -69,7 +69,6 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package.
-	#install uml/linux-2.4.34-uml-noskas-nomodules debian/linuxmuster-ipcop/var/lib/uml/ipcop
 
 	dh_install
 
