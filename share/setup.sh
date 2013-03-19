@@ -1,56 +1,38 @@
-#!/bin/bash
 #
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 21.01.2013
+# 19.03.2013
 # GPL v3
 #
 
-# read linuxmuster.net settings
-. /usr/share/linuxmuster/config/dist.conf || exit 1
-. $HELPERFUNCTIONS || exit 1
-
-# help
-if [ "$1" = "--help" -o "$1" = "-h" ]; then
- echo "Usage: $0 [--first] [<password>]"
- echo
- echo "\"--first\" does an initial setup of passwordless ssh connection to ipfire first."
- echo "If password is not provided as second parameter it will be queried."
- echo "Note: Invokation without any parameter starts ipfire setup immediatly!"
- echo
- exit 0
-fi
-
 # initial setup
-if [ "$1" = "--first" ]; then
- fwpasswd="$2"
- if [ -z "$fwpasswd" ]; then
+if [ -n "$first" ]; then
+ if [ -z "$password" ]; then
   echo
   stty -echo
-  read -p "Please enter IPFire's root password: " fwpasswd; echo
+  read -p "Please enter IPFire's root password: " password; echo
   stty echo
  fi
- [ -z "$fwpasswd" ] && exit 1
+ [ -z "$password" ] && bailout "No password given!"
  mykey="$(cat /root/.ssh/id_dsa.pub)"
- [ -z "$mykey" ] && exit 1
+ [ -z "$mykey" ] && bailout "No ssh key available!"
  if [ -s /root/.ssh/known_hosts ]; then
   for i in ipfire ipcop "$ipcopip"; do
    ssh-keygen -f "/root/.ssh/known_hosts" -R ["$i"]:222 &> /dev/null
   done
  fi
  # upload root's public key
- echo "$fwpasswd" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no -p222 "$ipcopip" "mkdir -p /root/.ssh && echo "$mykey" > /root/.ssh/authorized_keys"
+ echo "$password" | "$SCRIPTSDIR/sshaskpass.sh" ssh -oStrictHostKeyChecking=no -p222 "$ipcopip" "mkdir -p /root/.ssh && echo "$mykey" > /root/.ssh/authorized_keys"
+ # test passwordless ssh connection again
+ test_pwless_fw || bailout "Aborting!"
+ echo
 fi
-
-# test passwordless ssh connection
-test_pwless_fw || exit 1
 
 # test if firewall is IPFire
 fwtype="$(get_fwtype)"
 if [ "$fwtype" != "ipfire" ]; then
- echo "This is not an IPFire firewall!"
- exit 1
+ bailout "This is not an IPFire firewall!"
 fi
 
 # copy templates to a temp dir
@@ -109,10 +91,8 @@ if [ "$RC" = "0" ]; then
  if [ "$RC" = "0" ]; then
   echo "Rebooting IPFire. Done!"
  else
-  echo "Setup on IPFire failed!"
+  bailout "Setup on IPFire failed!"
  fi
 else
- echo "Upload to IPFire failed!"
+ bailout "Upload to IPFire failed!"
 fi
-
-exit "$RC"

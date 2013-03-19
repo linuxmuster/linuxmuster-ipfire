@@ -1,2 +1,3 @@
 lib/*		var/lib/linuxmuster-ipfire/
+sbin/*		usr/sbin/
 share/*		usr/share/linuxmuster-ipfire/

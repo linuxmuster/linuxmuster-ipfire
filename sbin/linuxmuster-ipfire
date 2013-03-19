@@ -1,0 +1,100 @@
+#!/bin/bash
+#
+# linuxmuster-ipfire wrapper script to invoke setup, backup and restore
+#
+# thomas@linuxmuster.net
+# 19.03.2013
+# GPL v3
+#
+
+# read linuxmuster.net settings
+. /usr/share/linuxmuster/config/dist.conf || exit 1
+. $HELPERFUNCTIONS || exit 1
+
+# parsing parameters
+getopt $*
+
+header(){
+ local opt="$1"
+ local msg="# linuxmuster.net: IPfire $opt #"
+ local chars="$(echo "$msg" | wc -m)"
+ echo
+ seq -s"#" $chars | tr -d '[:digit:]'
+ echo "$msg"
+ seq -s"#" $chars | tr -d '[:digit:]'
+ echo
+}
+
+usage() {
+  header "usage"
+  echo "linuxmuster-ipfire --backup"
+  echo "                   --restore"
+  echo "                   --setup [--first] [--password=<password>]"
+  echo "                   --help"
+  echo
+  echo "  backup:   Backs up IPFire settings to $BACKUPDIR/ipfire."
+  echo "            Keeps the last three backups."
+  echo "  restore:  Restores IPFire settings using the latest backup."
+  echo "  setup:    Starts linuxmuster.net specific IPFire setup."
+  echo "            Together with --first param it does an initial setup"
+  echo "            of passwordless ssh connection to IPFire first."
+  echo "            If password is not given it will be asked."
+  echo "  help:     Shows this help"
+  echo
+  exit 1
+}
+
+# test parameters
+[ -n "$help" ] && usage
+[ -n "$backup" -a -n "$restore" -a -n "$setup" ] && usage
+[ -n "$backup" -a -n "$restore" ] && usage
+[ -n "$restore" -a -n "$setup" ] && usage
+[ -n "$backup" -a -n "$setup" ] && usage
+[ -n "$backup" -a -n "$first" ] && usage
+[ -n "$restore" -a -n "$first" ] && usage
+[ -z "$backup" -a -z "$restore" -a -z "$setup" ] && usage
+
+# get action
+[ -n "$backup" ] && action="backup"
+[ -n "$restore" ] && action="restore"
+[ -n "$setup" ] && action="setup"
+
+# print script header
+header "$action"
+
+# test passwordless ssh connection if not initial setup
+if [ -z "$first" ]; then
+ if ! test_pwless_fw; then
+  echo
+  echo "You have to do first the initial IPFire setup by executing"
+  echo "/usr/share/linuxmuster-ipfire/setup.sh."
+  exit 1
+ fi
+ echo
+fi
+
+# check if i am already running
+mypid=$$
+mypidfile=/var/run/linuxmuster-ipfire-$action.pid
+if [ -e "$mypidfile" ]; then
+    echo "There is already an ipfire backup process running! Exiting!"
+    echo "If this is not correct you have to delete $mypidfile!"
+    exit 0
+fi
+echo "$mypid" > $mypidfile
+
+# exit if error occurs
+bailout(){
+ local msg="$1"
+ echo "$msg"
+ rm -f $mypidfile
+ exit 1
+}
+
+# source action script
+. /usr/share/linuxmuster-ipfire/$action.sh
+
+# delete pid file
+rm -f $mypidfile
+
+exit 0
