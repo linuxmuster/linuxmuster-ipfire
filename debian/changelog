@@ -1,3 +1,9 @@
+linuxmuster-ipfire (1.1.1-0ubuntu0) precise; urgency=low
+
+  * changed from mac to ip based rules.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 May 2013 19:11:01 +0200
+
 linuxmuster-ipfire (1.1.0-0ubuntu0) precise; urgency=low
 
   * added settings backup and restore scripts (closes #104 and #105).

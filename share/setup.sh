@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 19.03.2013
+# 21.05.2013
 # GPL v3
 #
 
@@ -42,17 +42,17 @@ mkdir -p "$UPLOADTMP"
 [ -d "$UPLOADTMP" ] || cancel "Cannot create ipfire upload temp dir."
 cp -a /var/lib/linuxmuster-ipfire/* "$UPLOADTMP/"
 
-# create allowed macs
-echo "Creating list of macaddresses for outgoing firewall ..."
-allowedmacs="$UPLOADTMP/templates/outgoing/groups/macgroups/allowedmacs"
-rm -f "$allowedmacs"
-touch "$allowedmacs"
+# create allowed ips
+echo "Creating list of ip addresses for outgoing firewall ..."
+allowedips="$UPLOADTMP/templates/outgoing/groups/ipgroups/allowedips"
+rm -f "$allowedips"
+touch "$allowedips"
 if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
  echo "Active internet blockade detected, removing ..."
  rm -f "$BLOCKEDHOSTSINTERNET"
  touch "$BLOCKEDHOSTSINTERNET"
 fi
-grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $4 }' | sort -u | tr a-z A-Z > "$allowedmacs"
+grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $5 }' | sort -u > "$allowedips"
 
 # import ipcop ovpn certs & keys
 IPCOPBAK="$(ls -xrt $BACKUPDIR/ipcop/backup-*.tar.gz 2> /dev/null | tail -1)"
