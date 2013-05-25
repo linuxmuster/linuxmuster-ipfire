@@ -1,3 +1,18 @@
+linuxmuster-ipfire (1.1.1-1ubuntu0) precise; urgency=low
+
+  * changed proxy access to an ip whitelist based setup:
+    - related postinst modifications.
+    - reload_proxy.sh:
+      - creates new acl file /var/ipfire/proxy/advanced/acls/src_allowed_ip.acl.
+      - updates src_allowed_ip.acl according to
+        /var/ipfire/outgoing/groups/ipgroups/allowedips.
+      - adds allowed_ips access acls to include.acl and squid.conf if missing.
+      - adds restricted_ips acls to squid.conf if missing.
+    - removed lan subnet acls from src_subnets.acl template.
+    - added acls for restricted_ips to squid.conf template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 16:55:49 +0200
+
 linuxmuster-ipfire (1.1.1-0ubuntu0) precise; urgency=low
 
   * changed from mac to ip based rules.

@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 06.02.2013
+# 22.05.2013
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -46,7 +46,7 @@ case "$1" in
 	  echo "This is not an IPFire firewall!"
 	  exit 1
 	 fi
- 
+
      # update linuxmuster.net scripts on IPFire
      echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
      exec_ipcop /bin/rm -rf /var/linuxmuster
@@ -60,47 +60,58 @@ case "$1" in
 
      # repair outgoing rules file if necessary
      if ! exec_ipcop "/bin/grep \^\"ALLOW\;on\;allowedips\;\" /var/ipfire/outgoing/rules"; then
-      echo -n "Repairing outgoing rules ... "
-      exec_ipcop "/bin/sed -e \"s|@@serverip@@|$serverip|\" /var/linuxmuster/templates/outgoing/rules > /var/ipfire/outgoing/rules" ; RC="$?"
-      if [ "$RC" = "0" ]; then
-       fwout_reload=yes
-       echo "Ok!"
-      else
-       echo "Failed!"
-       exit 1
-      fi
-     fi
-
-     # convert macs to ips for ip based external firewall
-     searchstr="$(head -1 $BLOCKEDHOSTSINTERNET)"
-     if validmac "$searchstr"; then
-      echo "Converting blocked mac addresses to ips because external firewall has changed."
-      macs="$(cat $BLOCKEDHOSTSINTERNET)"
-      rm $BLOCKEDHOSTSINTERNET
-      touch $BLOCKEDHOSTSINTERNET
-      for i in $macs; do
-       if validip "$i"; then
-        echo "$i" >> $BLOCKEDHOSTSINTERNET
-       else
-        get_ip "$i"
-        echo "$RET" >> $BLOCKEDHOSTSINTERNET
-       fi
-      done
-      fwext_reload=yes
-      fwout_reload=""
+      echo "Repairing outgoing rules."
+      exec_ipcop "/bin/sed -e \"s|@@serverip@@|$serverip|\" /var/linuxmuster/templates/outgoing/rules > /var/ipfire/outgoing/rules"
+      fw_reload=yes
      fi
      
-     # test for obsolete allowedmacs file
-     if [ -e "$CACHEDIR/allowedmacs" ]; then
-      rm -f "$CACHEDIR/allowedmacs"
-      fwext_reload=yes
-      fwout_reload=""
+     # remove lan subnet from proxy acls
+     subnets="/var/ipfire/proxy/advanced/acls/src_subnets.acl"
+     if exec_ipcop /bin/grep -q "$internalnet" "$subnets"; then
+      echo "Removing obsolete lan subnet from proxy acls."
+      exec_ipcop /bin/sed "/^$internalnet/d" -i "$subnets"
+      fw_reload=yes
      fi
 
-     # reload firewall     
-     [ -n "$fwout_reload" ] && exec_ipcop /var/linuxmuster/reload_outgoing.sh
-     [ -n "$fwext_reload" ] && $SCRIPTSDIR/internet_on_off.sh
+     # test for obsolete allowedmacs file
+     # if present do the whole mac to ip stuff
+     if [ -e "$CACHEDIR/allowedmacs" ]; then
 
+      echo "Removing obsolete mac based firewall stuff."
+
+      rm -f "$CACHEDIR/allowedmacs"
+
+      # remove obsolete mac group file on ipfire
+      exec_ipcop /bin/rm -f /var/ipfire/outgoing/groups/macgroups/allowedmacs*
+      
+      # convert macs to ips for ip based external firewall
+      searchstr="$(head -1 $BLOCKEDHOSTSINTERNET)"
+      if validmac "$searchstr"; then
+       echo "Converting blocked mac addresses to ips because external firewall has changed."
+       macs="$(cat $BLOCKEDHOSTSINTERNET)"
+       rm $BLOCKEDHOSTSINTERNET
+       touch $BLOCKEDHOSTSINTERNET
+       for i in $macs; do
+        if validip "$i"; then
+         echo "$i" >> $BLOCKEDHOSTSINTERNET
+        else
+         get_ip "$i"
+         echo "$RET" >> $BLOCKEDHOSTSINTERNET
+        fi
+       done
+       # remove banned mac files on ipfire
+       bannedmac="/var/ipfire/proxy/advanced/acls/src_banned_mac.acl"
+       exec_ipcop /bin/rm -f "$bannedmac"
+       exec_ipcop /usr/bin/touch "$bannedmac"
+       exec_ipcop /bin/chown nobody:nobody "$bannedmac"
+      fi
+
+      fw_reload=yes
+
+     fi # allowed_macs
+
+     # reload firewall     
+     [ -n "$fw_reload" ] && $SCRIPTSDIR/internet_on_off.sh
 
      ;;
 
