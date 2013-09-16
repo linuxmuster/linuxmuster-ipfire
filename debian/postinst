@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 22.05.2013
+# 16.09.2013
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -72,6 +72,13 @@ case "$1" in
       exec_ipcop /bin/sed "/^$internalnet/d" -i "$subnets"
       fw_reload=yes
      fi
+
+	 # repair ipfire path in ovpn.cnf (#200)
+	 ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
+	 if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
+	  echo "Fixing ifpire path in ovpn config."
+	  exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
+	 fi
 
      # test for obsolete allowedmacs file
      # if present do the whole mac to ip stuff
