@@ -1,3 +1,9 @@
+linuxmuster-ipfire (1.1.1-0ubuntu0) precise; urgency=low
+
+  * postinst: fixing ipfire path in ovpn.cnf (closes #200).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 16 Sep 2013 13:16:14 +0200
+
 linuxmuster-ipfire (1.1.0-0ubuntu0) precise; urgency=low
 
   * added settings backup and restore scripts (closes #104 and #105).

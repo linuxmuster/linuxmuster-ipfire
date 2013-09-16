@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 06.02.2013
+# 16.09.2013
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -58,6 +58,7 @@ case "$1" in
       put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
       if [ "$RC" = "0" ]; then
        echo "Ok!"
+
        # repair outgoing rules file if necessary
        if ! exec_ipcop "/bin/grep \^\"ALLOW\;on\;allowedmacs\;\" /var/ipfire/outgoing/rules"; then
         echo -n "Repairing outgoing rules ... "
@@ -69,6 +70,14 @@ case "$1" in
          echo "Failed!"
         fi
        fi
+
+	   # repair ipfire path in ovpn.cnf (#200)
+	   ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
+	   if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
+	    echo "Fixing ifpire path in ovpn config."
+	    exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
+	   fi
+
       else
        echo "Failed!"
       fi
