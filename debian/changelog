@@ -1,3 +1,9 @@
+linuxmuster-ipfire (1.1.2-0ubuntu0) precise; urgency=low
+
+  * updated proxy config templates due to IPfire 2.13 core update 73 (closes #241).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Nov 2013 11:12:32 +0100
+
 linuxmuster-ipfire (1.1.1-0ubuntu0) precise; urgency=low
 
   * postinst: fixing ipfire path in ovpn.cnf (closes #200).
