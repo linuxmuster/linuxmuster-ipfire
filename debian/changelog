@@ -1,3 +1,9 @@
+linuxmuster-ipfire (1.1.3-1ubuntu0) precise; urgency=low
+
+  * fixed firewall config template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 26 May 2014 17:58:04 +0200
+ 
 linuxmuster-ipfire (1.1.3-0ubuntu0) precise; urgency=low
 
   * updates due to IPfire 2.15 core update 77 (thanks to fschuette for his contributions) (closes #307).
