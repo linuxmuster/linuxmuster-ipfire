@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 29.11.2013
+# 23.05.2014
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -32,8 +32,7 @@ case "$1" in
 
      . $HELPERFUNCTIONS
      SETUPSCRIPT="/usr/share/linuxmuster-ipfire/setup.sh"
-     MINVER="2.13"
-     MINCORE="73"
+     MINCORE="77"
 
      if ! test_pwless_fw; then
       echo "You have to repeat package configuration with"
@@ -48,13 +47,8 @@ case "$1" in
 	  curver="$(cat "$ipfrel" | awk '{ print $2 }')"
 	  curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
 	  echo "IPFire $curver core $curcore detected!"
-	  if [ "${curver/./}" -lt "${MINVER/./}" ]; then
-	   echo "Your current IPFire version is less then $MINVER and therefore not supported. Please upgrade IPFire!"
-	   exit 0
-	  fi
 	  if [ "$curcore" -lt "$MINCORE" ]; then
-	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire!"
-	   exit 0
+	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire to core update level $MINCORE!"
 	  fi
 	 else
 	  echo "This is probably not an IPFire firewall!"
@@ -68,26 +62,15 @@ case "$1" in
      if exec_ipcop /bin/ls /var/linuxmuster; then
       echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
       exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
+      echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
       put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
       if [ "$RC" = "0" ]; then
        echo "Ok!"
 
-       # repair outgoing rules file if necessary
-       if ! exec_ipcop "/bin/grep \^\"ALLOW\;on\;allowedmacs\;\" /var/ipfire/outgoing/rules"; then
-        echo -n "Repairing outgoing rules ... "
-        exec_ipcop "/bin/sed -e \"s|@@serverip@@|$serverip|\" /var/linuxmuster/templates/outgoing/rules > /var/ipfire/outgoing/rules" ; RC="$?"
-        if [ "$RC" = "0" ]; then
-         exec_ipcop /var/linuxmuster/reload_outgoing.sh
-         echo "Ok!"
-        else
-         echo "Failed!"
-        fi
-       fi
-
 	   # repair ipfire path in ovpn.cnf (#200)
 	   ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
 	   if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
-	    echo "Fixing ifpire path in ovpn config."
+	    echo "Fixing ipfire path in ovpn config."
 	    exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
 	   fi
 
