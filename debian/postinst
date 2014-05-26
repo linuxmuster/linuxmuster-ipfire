@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 16.09.2013
+# 29.11.2013
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -32,6 +32,8 @@ case "$1" in
 
      . $HELPERFUNCTIONS
      SETUPSCRIPT="linuxmuster-ipfire --setup --first"
+     MINVER="2.13"
+     MINCORE="73"
 
      if ! test_pwless_fw; then
       echo "You have to do first an initial setup of IPFire by inkoving"
@@ -39,12 +41,26 @@ case "$1" in
       exit 0
      fi
 
-	 # test if firewall is IPFire
-	 if exec_ipcop /bin/ls /var/ipfire; then
-	  echo "IPFire detected!"
+	 # test if firewall is IPFire, get current version
+	 ipfrel="$CACHEDIR/ipfire-release"
+	 if get_ipcop /etc/system-release "$ipfrel"; then
+	  curver="$(cat "$ipfrel" | awk '{ print $2 }')"
+	  curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
+	  echo "IPFire $curver core $curcore detected!"
+	  if [ "${curver/./}" -lt "${MINVER/./}" ]; then
+	   echo "Your current IPFire version is less then $MINVER and therefore not supported. Please upgrade IPFire!"
+	   exit 0
+	  fi
+	  if [ "$curcore" -lt "$MINCORE" ]; then
+	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire!"
+	   exit 0
+	  fi
 	 else
-	  echo "This is not an IPFire firewall!"
-	  exit 1
+	  echo "This is probably not an IPFire firewall!"
+	  echo "Don't forget to invoke the setup script"
+	  echo "$SETUPSCRIPT"
+	  echo "later when IPFire is installed!"
+	  exit 0
 	 fi
 
      # update linuxmuster.net scripts on IPFire
@@ -90,7 +106,7 @@ case "$1" in
 
       # remove obsolete mac group file on ipfire
       exec_ipcop /bin/rm -f /var/ipfire/outgoing/groups/macgroups/allowedmacs*
-      
+
       # convert macs to ips for ip based external firewall
       searchstr="$(head -1 $BLOCKEDHOSTSINTERNET)"
       if validmac "$searchstr"; then

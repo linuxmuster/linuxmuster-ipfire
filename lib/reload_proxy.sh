@@ -2,10 +2,13 @@
 #
 # patch squid.conf according to process banned ips
 #
-# 22.05.2013
+# 25.11.2013
 # thomas@linuxmuster.net
 # GPL v3
 #
+
+# omit proxy reload if set
+[ "$1" = "--noreload" ] && noreload="yes"
 
 proxydir=/var/ipfire/proxy
 squidconf="$proxydir/squid.conf"
@@ -76,4 +79,4 @@ else # remove unrestricted_ips statement
 fi
 
 # reload proxy finally
-/usr/local/bin/squidctrl reconfigure
+[ -z "$noreload" ] && /usr/local/bin/squidctrl reconfigure

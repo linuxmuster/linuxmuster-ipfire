@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 21.05.2013
+# 29.11.2013
 # GPL v3
 #
 
@@ -42,17 +42,10 @@ mkdir -p "$UPLOADTMP"
 [ -d "$UPLOADTMP" ] || cancel "Cannot create ipfire upload temp dir."
 cp -a /var/lib/linuxmuster-ipfire/* "$UPLOADTMP/"
 
-# create allowed ips
-echo "Creating list of ip addresses for outgoing firewall ..."
-allowedips="$UPLOADTMP/templates/outgoing/groups/ipgroups/allowedips"
-rm -f "$allowedips"
-touch "$allowedips"
-if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
- echo "Active internet blockade detected, removing ..."
- rm -f "$BLOCKEDHOSTSINTERNET"
- touch "$BLOCKEDHOSTSINTERNET"
-fi
-grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $5 }' | sort -u > "$allowedips"
+# update allowed ips file
+"$SCRIPTSDIR"/internet_on_off.sh --nofirewall
+# and copy it to the files to be uploaded
+[ -e "$ALLOWEDIPS" ] && cp "$ALLOWEDIPS" "$UPLOADTMP/templates/outgoing/groups/ipgroups/allowedips"
 
 # import ipcop ovpn certs & keys
 IPCOPBAK="$(ls -xrt $BACKUPDIR/ipcop/backup-*.tar.gz 2> /dev/null | tail -1)"
@@ -74,9 +67,11 @@ if [ -n "$IPCOPBAK" ]; then
  mv "$BACKUPDIR/ipcop" "$BACKUPDIR/ipcop_old"
 fi
 
-# copy settings file
+# prepare necessary settings values for upload
 echo "Adding linuxmuster settings ..."
 cp "$NETWORKSETTINGS" "$UPLOADTMP/.settings"
+echo "internmask=$INTERNMASK" >> "$UPLOADTMP/.settings"
+echo "subnetmask=$SUBNETMASK" >> "$UPLOADTMP/.settings"
 
 # upload linuxmuster.net scripts and templates
 echo "Uploading linuxmuster.net's IPFire configuration scripts ..."
@@ -87,7 +82,7 @@ rm -rf "$UPLOADTMP"
 if [ "$RC" = "0" ]; then
  # start setup
  echo "Starting setup ..."
- exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" ; RC="$?"
+ exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" || RC="1"
  if [ "$RC" = "0" ]; then
   echo "Rebooting IPFire. Done!"
  else
