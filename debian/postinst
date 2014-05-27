@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 29.11.2013
+# 26.05.2014
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -32,8 +32,7 @@ case "$1" in
 
      . $HELPERFUNCTIONS
      SETUPSCRIPT="linuxmuster-ipfire --setup --first"
-     MINVER="2.13"
-     MINCORE="73"
+     MINCORE="77"
 
      if ! test_pwless_fw; then
       echo "You have to do first an initial setup of IPFire by inkoving"
@@ -47,13 +46,8 @@ case "$1" in
 	  curver="$(cat "$ipfrel" | awk '{ print $2 }')"
 	  curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
 	  echo "IPFire $curver core $curcore detected!"
-	  if [ "${curver/./}" -lt "${MINVER/./}" ]; then
-	   echo "Your current IPFire version is less then $MINVER and therefore not supported. Please upgrade IPFire!"
-	   exit 0
-	  fi
 	  if [ "$curcore" -lt "$MINCORE" ]; then
-	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire!"
-	   exit 0
+	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire to core update level $MINCORE!"
 	  fi
 	 else
 	  echo "This is probably not an IPFire firewall!"
@@ -65,8 +59,9 @@ case "$1" in
 
      # update linuxmuster.net scripts on IPFire
      echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
-     exec_ipcop /bin/rm -rf /var/linuxmuster
-     put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; RC="$?"
+     exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
+     echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
+     put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
      if [ "$RC" = "0" ]; then
       echo "Ok!"
      else
@@ -74,19 +69,11 @@ case "$1" in
       exit 1
      fi
 
-     # repair outgoing rules file if necessary
-     if ! exec_ipcop "/bin/grep \^\"ALLOW\;on\;allowedips\;\" /var/ipfire/outgoing/rules"; then
-      echo "Repairing outgoing rules."
-      exec_ipcop "/bin/sed -e \"s|@@serverip@@|$serverip|\" /var/linuxmuster/templates/outgoing/rules > /var/ipfire/outgoing/rules"
-      fw_reload=yes
-     fi
-     
      # remove lan subnet from proxy acls
      subnets="/var/ipfire/proxy/advanced/acls/src_subnets.acl"
      if exec_ipcop /bin/grep -q "$internalnet" "$subnets"; then
       echo "Removing obsolete lan subnet from proxy acls."
       exec_ipcop /bin/sed "/^$internalnet/d" -i "$subnets"
-      fw_reload=yes
      fi
 
 	 # repair ipfire path in ovpn.cnf (#200)
@@ -101,11 +88,7 @@ case "$1" in
      if [ -e "$CACHEDIR/allowedmacs" ]; then
 
       echo "Removing obsolete mac based firewall stuff."
-
       rm -f "$CACHEDIR/allowedmacs"
-
-      # remove obsolete mac group file on ipfire
-      exec_ipcop /bin/rm -f /var/ipfire/outgoing/groups/macgroups/allowedmacs*
 
       # convert macs to ips for ip based external firewall
       searchstr="$(head -1 $BLOCKEDHOSTSINTERNET)"
@@ -122,6 +105,7 @@ case "$1" in
          echo "$RET" >> $BLOCKEDHOSTSINTERNET
         fi
        done
+
        # remove banned mac files on ipfire
        bannedmac="/var/ipfire/proxy/advanced/acls/src_banned_mac.acl"
        exec_ipcop /bin/rm -f "$bannedmac"
@@ -129,12 +113,11 @@ case "$1" in
        exec_ipcop /bin/chown nobody:nobody "$bannedmac"
       fi
 
-      fw_reload=yes
-
      fi # allowed_macs
 
-     # reload firewall     
-     [ -n "$fw_reload" ] && $SCRIPTSDIR/internet_on_off.sh
+     # reload firewall
+	 echo "Reloading firewall rules ..."
+     $SCRIPTSDIR/internet_on_off.sh || true
 
      ;;
 

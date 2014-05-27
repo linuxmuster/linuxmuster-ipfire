@@ -1,0 +1,6 @@
+1,allowedports,Aus GRÜN erlaubte Ports,FTP-control
+2,allowedports,Aus GRÜN erlaubte Ports,FTP-data
+3,allowedports,Aus GRÜN erlaubte Ports,FTPS control
+4,allowedports,Aus GRÜN erlaubte Ports,FTPS data
+5,allowedports,Aus GRÜN erlaubte Ports,HTTPS
+6,allowedports,Aus GRÜN erlaubte Ports,SSH

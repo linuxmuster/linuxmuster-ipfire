@@ -1,3 +1,9 @@
+linuxmuster-ipfire (1.2.3-0ubuntu0) precise; urgency=low
+
+  * updates due to IPfire 2.15 core update 77 (closes #308).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 27 May 2014 14:12:21 +0200
+
 linuxmuster-ipfire (1.2.2-0ubuntu0) precise-testing; urgency=low
 
   * updated proxy config templates due to IPfire 2.13 core update 73 (closes #241).

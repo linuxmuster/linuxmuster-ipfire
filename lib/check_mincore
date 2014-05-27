@@ -1,0 +1,30 @@
+# check if core update level is sufficient
+#
+# thomas@linuxmuster.net
+# 26.05.2014
+#
+
+# get current
+curcore="$(cat /etc/system-release | awk '{ print $5 }' | sed 's/core//')"
+if [ -n "$curcore" ]; then
+ echo "Current core level: $curcore."
+else
+ echo "Cannot get current core level!"
+ exit 1
+fi
+
+# get minimum
+mincore="$(cat $SETUPDIR/mincore)"
+if [ -n "$mincore" ]; then
+ echo "Minimum core level: $mincore."
+ if [ $curcore -lt $mincore ]; then
+  echo "Current core level $curcore is not supported!"
+  echo "Please upgrade IPFire at least to core update level $mincore!"
+  exit 1
+ else
+  echo "Current core level $curcore is supported."
+ fi
+else
+ echo "Cannot get minimum core level!"
+ exit 1
+fi

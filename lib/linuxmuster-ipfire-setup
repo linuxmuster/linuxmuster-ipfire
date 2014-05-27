@@ -3,7 +3,7 @@
 # setup IPfire for linuxmuster.net
 #
 # <thomas@linuxmuster.net>
-# 05.02.2013
+# 26.05.2014
 # GPL v3
 #
 
@@ -21,6 +21,9 @@ for i in "$SETUPDIR" "$SETTINGS" "$TPLDIR"; do
   exit 1
  fi
 done
+
+# test core update level
+. "$SETUPDIR/check_mincore"
 
 # read setup values
 . "$SETTINGS"

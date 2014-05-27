@@ -2,7 +2,7 @@
 #
 # patch squid.conf according to process banned ips
 #
-# 25.11.2013
+# 27.05.2014
 # thomas@linuxmuster.net
 # GPL v3
 #
@@ -10,73 +10,64 @@
 # omit proxy reload if set
 [ "$1" = "--noreload" ] && noreload="yes"
 
-proxydir=/var/ipfire/proxy
-squidconf="$proxydir/squid.conf"
-includeacl="$proxydir/advanced/acls/include.acl"
-proxy_allowed_ips="$proxydir/advanced/acls/src_allowed_ip.acl"
-proxy_unrestricted_ips="$proxydir/advanced/acls/src_unrestricted_ip.acl"
-outgoing_allowed_ips="/var/ipfire/outgoing/groups/ipgroups/allowedips"
-custom_includes_start="#Start of custom includes"
-custom_includes_end="#End of custom includes"
-
-
-# update allowed ips
-if [ -e "$outgoing_allowed_ips" ]; then
- cp -f "$outgoing_allowed_ips" "$proxy_allowed_ips"
- sed '/^$/d' -i "$proxy_allowed_ips"
- chown nobody:nobody "$proxy_allowed_ips"
-else
- rm -f "$proxy_allowed_ips"
-fi
+PROXYDIR=/var/ipfire/proxy
+SQUIDCONF="$PROXYDIR/squid.conf"
+INCLUDEACL="$PROXYDIR/advanced/acls/include.acl"
+PROXY_ALLOWED_IPS="$PROXYDIR/advanced/acls/src_allowed_ip.acl"
+PROXY_UNRESTRICTED_IPS="$PROXYDIR/advanced/acls/src_unrestricted_ip.acl"
+CUSTOM_INCLUDES_START="#Start of custom includes"
+CUSTOM_INCLUDES_END="#End of custom includes"
 
 
 # if there are allowed ips
-if [ -s "$proxy_allowed_ips" ]; then
+if [ -s "$PROXY_ALLOWED_IPS" ]; then
 
  # test if allowed_ips statement is already configured, if not add it
- if ! grep -q IPFire_allowed_ips "$includeacl"; then
-  touch "$includeacl"
-  echo "acl IPFire_allowed_ips src \"$proxy_allowed_ips\"" >> "$includeacl"
-  echo "http_access allow IPFire_allowed_ips within_timeframe" >> "$includeacl"
+ if ! grep -q IPFire_allowed_ips "$INCLUDEACL"; then
+  touch "$INCLUDEACL"
+  echo "acl IPFire_allowed_ips src \"$PROXY_ALLOWED_IPS\"" >> "$INCLUDEACL"
+  echo "http_access allow IPFire_allowed_ips within_timeframe" >> "$INCLUDEACL"
  fi
- if ! grep -q IPFire_allowed_ips "$squidconf"; then
-  if ! grep -q "$custom_includes_start" "$squidconf"; then
+ if ! grep -q IPFire_allowed_ips "$SQUIDCONF"; then
+  if ! grep -q "$CUSTOM_INCLUDES_START" "$SQUIDCONF"; then
    sed "/acl CONNECT method CONNECT/ a\\
 \\
-$custom_includes_start\\
+$CUSTOM_INCLUDES_START\\
 \\
-$custom_includes_end" -i "$squidconf"
+$CUSTOM_INCLUDES_END" -i "$SQUIDCONF"
   fi
-  sed "/$custom_includes_start/ a\\
+  sed "/$CUSTOM_INCLUDES_START/ a\\
 \\
-acl IPFire_allowed_ips src \"$proxy_allowed_ips\"\\
-http_access allow IPFire_allowed_ips within_timeframe" -i "$squidconf"
+acl IPFire_allowed_ips src \"$PROXY_ALLOWED_IPS\"\\
+http_access allow IPFire_allowed_ips within_timeframe" -i "$SQUIDCONF"
  fi
 
 else # remove allowed_ips statement
- sed '/IPFire_allowed_ips/d' -i "$includeacl"
- sed '/^$/d' -i "$includeacl"
- sed '/IPFire_allowed_ips/d' -i "$squidconf"
+ sed '/IPFire_allowed_ips/d' -i "$INCLUDEACL"
+ sed '/^$/d' -i "$INCLUDEACL"
+ sed '/IPFire_allowed_ips/d' -i "$SQUIDCONF"
 fi
-chown nobody:nobody "$includeacl"
 
 
 # if there are unrestricted ips
-if [ -s "$proxy_unrestricted_ips" ]; then
+if [ -s "$PROXY_UNRESTRICTED_IPS" ]; then
 
  # test if banned_ip statement is already there, if not add it
- if ! grep -q ^"acl IPFire_unrestricted_ips" $squidconf; then
+ if ! grep -q ^"acl IPFire_unrestricted_ips" $SQUIDCONF; then
   sed -e "/acl CONNECT method CONNECT/i\
-acl IPFire_unrestricted_ips src \"$proxy_unrestricted_ips\"" -i "$squidconf"
+acl IPFire_unrestricted_ips src \"$PROXY_UNRESTRICTED_IPS\"" -i "$SQUIDCONF"
  fi
- if ! grep ^"http_access allow" "$squidconf" | grep -q IPFire_unrestricted_ips; then
+ if ! grep ^"http_access allow" "$SQUIDCONF" | grep -q IPFire_unrestricted_ips; then
   sed -e "/#Set custom configured ACLs/a\
-http_access allow IPFire_unrestricted_ips" -i "$squidconf"
+http_access allow IPFire_unrestricted_ips" -i "$SQUIDCONF"
  fi
 
 else # remove unrestricted_ips statement
- sed "/IPFire_unrestricted_ips/d" -i "$squidconf"
+ sed "/IPFire_unrestricted_ips/d" -i "$SQUIDCONF"
 fi
+
+# permissions
+chown nobody:nobody "$PROXYDIR/advanced/acls" -R
 
 # reload proxy finally
 [ -z "$noreload" ] && /usr/local/bin/squidctrl reconfigure
