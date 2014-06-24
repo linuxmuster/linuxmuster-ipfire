@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 23.05.2014
+# 27.05.2014
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -73,6 +73,10 @@ case "$1" in
 	    echo "Fixing ipfire path in ovpn config."
 	    exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
 	   fi
+	   
+	   # restarting external firewall
+	   echo "Reloading firewall rules ..."
+	   $SCRIPTSDIR/internet_on_off.sh || true
 
       else
        echo "Failed!"
