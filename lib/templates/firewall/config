@@ -1,5 +1,6 @@
-4,ACCEPT,FORWARDFW,OFF,std_net_src,ALL,tgt_addr,@@serverip@@/32,,TCP,,,ON,,,TGT_PORT,25,SMTP für Server,,,,,,,,,,00:00,00:00,ON,Default IP,25,dnat
-1,ACCEPT,FORWARDFW,ON,src_addr,@@serverip@@/32,std_net_tgt,ALL,,,,,,,,,,Server darf raus,,,on,on,on,on,on,on,on,00:00,00:00,,ALL,,dnat
-3,ACCEPT,FORWARDFW,OFF,std_net_src,ALL,tgt_addr,@@serverip@@/32,,TCP,,,ON,,,TGT_PORT,443,HTTPS für Server,,,,,,,,,,00:00,00:00,ON,Default IP,443,dnat
+1,ACCEPT,FORWARDFW,ON,src_addr,@@serverip@@/32,std_net_tgt,ALL,,,,,,,,,,Server darf auf allen Ports raus,,,on,on,on,on,on,on,on,00:00,00:00,,ALL,,dnat
 2,ACCEPT,FORWARDFW,ON,std_net_src,ALL,tgt_addr,@@serverip@@/32,,TCP,,,ON,,,TGT_PORT,22,SSH für Server,,,,,,,,,,00:00,00:00,ON,Default IP,2222,dnat
-5,ACCEPT,FORWARDFW,ON,cust_grp_src,allowedmacs,std_net_tgt,RED,,,,,ON,,,cust_srvgrp,allowedports,Aus GRUEN erlaubte Hosts,ON,,on,on,on,on,on,on,on,00:00,00:00,,AUTO,,dnat
+3,ACCEPT,FORWARDFW,OFF,std_net_src,ALL,tgt_addr,@@serverip@@/32,,TCP,,,ON,,,TGT_PORT,443,HTTPS für Server,,,,,,,,,,00:00,00:00,ON,Default IP,443,dnat
+4,ACCEPT,FORWARDFW,OFF,std_net_src,ALL,tgt_addr,@@serverip@@/32,,TCP,,,ON,,,TGT_PORT,25,SMTP für Server,,,,,,,,,,00:00,00:00,ON,Default IP,25,dnat
+5,ACCEPT,FORWARDFW,ON,std_net_src,OpenVPN-Dyn,tgt_addr,@@internalnet@@/12,,,,,,,,,,Von OpenVPN nach GRUEN erlaubt,,,,,,,,,,00:00,00:00,,AUTO,,dnat
+6,ACCEPT,FORWARDFW,ON,cust_grp_src,allowedmacs,std_net_tgt,RED,,,,,ON,,,cust_srvgrp,allowedports,Aus GRUEN erlaubte Hosts,ON,,on,on,on,on,on,on,on,00:00,00:00,,AUTO,,dnat

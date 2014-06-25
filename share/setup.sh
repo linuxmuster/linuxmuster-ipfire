@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 19.03.2013
+# 24.06.2014
 # GPL v3
 #
 
@@ -42,18 +42,6 @@ mkdir -p "$UPLOADTMP"
 [ -d "$UPLOADTMP" ] || cancel "Cannot create ipfire upload temp dir."
 cp -a /var/lib/linuxmuster-ipfire/* "$UPLOADTMP/"
 
-# create allowed macs
-echo "Creating list of macaddresses for outgoing firewall ..."
-allowedmacs="$UPLOADTMP/templates/outgoing/groups/macgroups/allowedmacs"
-rm -f "$allowedmacs"
-touch "$allowedmacs"
-if [ -s "$BLOCKEDHOSTSINTERNET" ]; then
- echo "Active internet blockade detected, removing ..."
- rm -f "$BLOCKEDHOSTSINTERNET"
- touch "$BLOCKEDHOSTSINTERNET"
-fi
-grep ^[a-zA-Z0-9] $WIMPORTDATA | awk -F\; '{ print $4 }' | sort -u | tr a-z A-Z > "$allowedmacs"
-
 # import ipcop ovpn certs & keys
 IPCOPBAK="$(ls -xrt $BACKUPDIR/ipcop/backup-*.tar.gz 2> /dev/null | tail -1)"
 if [ -n "$IPCOPBAK" ]; then
@@ -85,7 +73,9 @@ put_ipcop "$UPLOADTMP" /var/linuxmuster ; RC="$?"
 rm -rf "$UPLOADTMP"
 
 if [ "$RC" = "0" ]; then
- # start setup
+ # necessary to update mac lists
+ echo "Reloading firewall rules ..."
+ $SCRIPTSDIR/internet_on_off.sh
  echo "Starting setup ..."
  exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" ; RC="$?"
  if [ "$RC" = "0" ]; then

@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 27.05.2014
+# 24.06.2014
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -25,6 +25,10 @@ set -e
 case "$1" in
     configure)
 
+     # save minimum core update level
+     MINCORE="77"
+     echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
+
 	 [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 
 	 # do nothing if linuxmuster.net ist not yet installed
@@ -32,7 +36,6 @@ case "$1" in
 
      . $HELPERFUNCTIONS
      SETUPSCRIPT="/usr/share/linuxmuster-ipfire/setup.sh"
-     MINCORE="77"
 
      if ! test_pwless_fw; then
       echo "You have to repeat package configuration with"
@@ -62,7 +65,6 @@ case "$1" in
      if exec_ipcop /bin/ls /var/linuxmuster; then
       echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
       exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
-      echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
       put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
       if [ "$RC" = "0" ]; then
        echo "Ok!"
