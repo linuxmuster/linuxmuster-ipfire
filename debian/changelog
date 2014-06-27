@@ -1,3 +1,10 @@
+linuxmuster-ipfire (1.1.4-1ubuntu0) precise; urgency=low
+
+  * setup:
+    - removed obsolete input and outgoing rules.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 27 Jun 2014 11:50:30 +0200
+
 linuxmuster-ipfire (1.1.4-0ubuntu0) precise; urgency=low
 
   * postinst: fixed handling of minimal core update level.

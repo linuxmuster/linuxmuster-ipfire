@@ -1,1 +1,0 @@
-1,ACCEPT,INPUTFW,ON,std_net_src,ALL,ipfire,RED1,,TCP,,,ON,,,TGT_PORT,113,,,,,,,,,,,00:00,00:00,,ALL,,dnat

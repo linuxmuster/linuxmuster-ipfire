@@ -1,1 +1,0 @@
-1,ACCEPT,OUTGOINGFW,ON,ipfire_src,RED1,std_net_tgt,ALL,,,,,,,,,,Firewall darf raus,,,on,on,on,on,on,on,on,00:00,00:00,,ALL,,dnat
