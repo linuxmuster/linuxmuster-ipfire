@@ -1,3 +1,10 @@
+linuxmuster-ipfire (1.1.4-2ubuntu0) precise; urgency=low
+
+  * setup:
+    - added firewall outgoing rule.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 27 Jun 2014 11:50:30 +0200
+
 linuxmuster-ipfire (1.1.4-1ubuntu0) precise; urgency=low
 
   * setup:
