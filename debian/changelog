@@ -1,3 +1,15 @@
+linuxmuster-ipfire (1.2.4-0ubuntu0) precise-testing; urgency=low
+
+  * postinst:
+    - fixed minimum core level handling.
+    - fixed ip list update.
+  * setup templates:
+    - removed obsolete firewall input rule in port 113.
+    - fixed squid.conf due to missing unrestricted ip acls.
+  * setup.sh: fixed allowedips update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Jul 2014 15:18:38 +0200
+
 linuxmuster-ipfire (1.2.3-1ubuntu0) precise-testing; urgency=low
 
   * added LDAPS rule for server to firewall config template.

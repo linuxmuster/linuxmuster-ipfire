@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 26.05.2014
+# 01.07.2014
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -25,6 +25,9 @@ set -e
 case "$1" in
     configure)
 
+     MINCORE="77"
+     echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
+
 	 [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 
 	 # do nothing if linuxmuster.net ist not yet installed
@@ -32,7 +35,6 @@ case "$1" in
 
      . $HELPERFUNCTIONS
      SETUPSCRIPT="linuxmuster-ipfire --setup --first"
-     MINCORE="77"
 
      if ! test_pwless_fw; then
       echo "You have to do first an initial setup of IPFire by inkoving"
@@ -60,7 +62,6 @@ case "$1" in
      # update linuxmuster.net scripts on IPFire
      echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
      exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
-     echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
      put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
      if [ "$RC" = "0" ]; then
       echo "Ok!"

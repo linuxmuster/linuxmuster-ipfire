@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 29.11.2013
+# 03.07.2014
 # GPL v3
 #
 
@@ -42,11 +42,6 @@ mkdir -p "$UPLOADTMP"
 [ -d "$UPLOADTMP" ] || cancel "Cannot create ipfire upload temp dir."
 cp -a /var/lib/linuxmuster-ipfire/* "$UPLOADTMP/"
 
-# update allowed ips file
-"$SCRIPTSDIR"/internet_on_off.sh --nofirewall
-# and copy it to the files to be uploaded
-[ -e "$ALLOWEDIPS" ] && cp "$ALLOWEDIPS" "$UPLOADTMP/templates/outgoing/groups/ipgroups/allowedips"
-
 # import ipcop ovpn certs & keys
 IPCOPBAK="$(ls -xrt $BACKUPDIR/ipcop/backup-*.tar.gz 2> /dev/null | tail -1)"
 if [ -n "$IPCOPBAK" ]; then
@@ -80,7 +75,9 @@ put_ipcop "$UPLOADTMP" /var/linuxmuster ; RC="$?"
 rm -rf "$UPLOADTMP"
 
 if [ "$RC" = "0" ]; then
- # start setup
+ # necessary to update ip lists
+ echo "Reloading firewall rules ..."
+ $SCRIPTSDIR/internet_on_off.sh
  echo "Starting setup ..."
  exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" || RC="1"
  if [ "$RC" = "0" ]; then
