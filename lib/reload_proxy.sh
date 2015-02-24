@@ -18,6 +18,12 @@ PROXY_UNRESTRICTED_IPS="$PROXYDIR/advanced/acls/src_unrestricted_ip.acl"
 CUSTOM_INCLUDES_START="#Start of custom includes"
 CUSTOM_INCLUDES_END="#End of custom includes"
 
+# PROXY auth required
+if grep -q "^acl for_inetusers" "$SQUIDCONF"; then
+ proxyauth=" for_inetusers"
+else
+ proxyauth=
+fi
 
 # if there are allowed ips
 if [ -s "$PROXY_ALLOWED_IPS" ]; then
@@ -26,7 +32,7 @@ if [ -s "$PROXY_ALLOWED_IPS" ]; then
  if ! grep -q IPFire_allowed_ips "$INCLUDEACL"; then
   touch "$INCLUDEACL"
   echo "acl IPFire_allowed_ips src \"$PROXY_ALLOWED_IPS\"" >> "$INCLUDEACL"
-  echo "http_access allow IPFire_allowed_ips within_timeframe" >> "$INCLUDEACL"
+  echo "http_access allow IPFire_allowed_ips within_timeframe$proxyauth" >> "$INCLUDEACL"
  fi
  if ! grep -q IPFire_allowed_ips "$SQUIDCONF"; then
   if ! grep -q "$CUSTOM_INCLUDES_START" "$SQUIDCONF"; then
@@ -39,7 +45,7 @@ $CUSTOM_INCLUDES_END" -i "$SQUIDCONF"
   sed "/$CUSTOM_INCLUDES_START/ a\\
 \\
 acl IPFire_allowed_ips src \"$PROXY_ALLOWED_IPS\"\\
-http_access allow IPFire_allowed_ips within_timeframe" -i "$SQUIDCONF"
+http_access allow IPFire_allowed_ips within_timeframe$proxyauth" -i "$SQUIDCONF"
  fi
 
 else # remove allowed_ips statement
@@ -52,7 +58,7 @@ fi
 # if there are unrestricted ips
 if [ -s "$PROXY_UNRESTRICTED_IPS" ]; then
 
- # test if banned_ip statement is already there, if not add it
+ # test if unrestricted_ips statement is already there, if not add it
  if ! grep -q ^"acl IPFire_unrestricted_ips" $SQUIDCONF; then
   sed -e "/acl CONNECT method CONNECT/i\
 acl IPFire_unrestricted_ips src \"$PROXY_UNRESTRICTED_IPS\"" -i "$SQUIDCONF"
