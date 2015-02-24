@@ -1,9 +1,16 @@
-linuxmuster-ipfire (1.2.5-0ubuntu0) precise-testing; urgency=low
+linuxmuster-ipfire (1.2.6-0ubuntu0) babo; urgency=low
+
+  *  Merge pull request #2 from fschuett/fix/proxyauth:
+     Fix reload_proxy for environments with proxyauth enabled (closes #331).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 24 Feb 2015 19:26:18 +0100
+
+linuxmuster-ipfire (1.2.5-0ubuntu0) babo; urgency=low
 
   * Merged pull request #1 from jollyzsher, adds openvpn rule in firewall
     config template (closes #310).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 29 Oct 2014 17:19:00 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 15:37:24 +0100
 
 linuxmuster-ipfire (1.2.4-0ubuntu0) precise-testing; urgency=low
 
