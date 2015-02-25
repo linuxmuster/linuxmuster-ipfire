@@ -1,9 +1,11 @@
 linuxmuster-ipfire (1.2.6-0ubuntu0) babo; urgency=low
 
-  *  Merge pull request #2 from fschuett/fix/proxyauth:
-     Fix reload_proxy for environments with proxyauth enabled (closes #331).
+  * proxy auth fixes (closes #331):
+    - merged pull request #2 from fschuett
+    - fixes and additional improvements for reload_proxy in connection
+      to proxy auth and squid.conf rewrite.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 24 Feb 2015 19:26:18 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Feb 2015 13:40:40 +0100
 
 linuxmuster-ipfire (1.2.5-0ubuntu0) babo; urgency=low
 
