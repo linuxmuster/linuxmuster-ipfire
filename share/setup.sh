@@ -15,7 +15,7 @@ if [ -n "$first" ]; then
   stty echo
  fi
  [ -z "$password" ] && bailout "No password given!"
- mykey="$(cat /root/.ssh/id_dsa.pub)"
+ mykey="$(cat /root/.ssh/id_rsa.pub)"
  [ -z "$mykey" ] && bailout "No ssh key available!"
  if [ -s /root/.ssh/known_hosts ]; then
   for i in ipfire ipcop "$ipcopip"; do
