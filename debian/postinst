@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 24.06.2014
+# 24.02.2015
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -25,7 +25,6 @@ set -e
 case "$1" in
     configure)
 
-     # save minimum core update level
      MINCORE="77"
      echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
 
@@ -35,12 +34,11 @@ case "$1" in
      [ -e "$INSTALLED" ] || exit 0
 
      . $HELPERFUNCTIONS
-     SETUPSCRIPT="/usr/share/linuxmuster-ipfire/setup.sh"
+     SETUPSCRIPT="linuxmuster-ipfire --setup --first"
 
      if ! test_pwless_fw; then
-      echo "You have to repeat package configuration with"
-      echo "# dpkg-reconfigure linuxmuster-ipfire"
-      echo "when you have fixed this!"
+      echo "You have to do first an initial setup of IPFire by inkoving"
+      echo "# $SETUPSCRIPT"
       exit 0
      fi
 
@@ -62,33 +60,65 @@ case "$1" in
 	 fi
 
      # update linuxmuster.net scripts on IPFire
-     if exec_ipcop /bin/ls /var/linuxmuster; then
-      echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
-      exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
-      put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
-      if [ "$RC" = "0" ]; then
-       echo "Ok!"
-
-	   # repair ipfire path in ovpn.cnf (#200)
-	   ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
-	   if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
-	    echo "Fixing ipfire path in ovpn config."
-	    exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
-	   fi
-	   
-	   # restarting external firewall
-	   echo "Reloading firewall rules ..."
-	   $SCRIPTSDIR/internet_on_off.sh || true
-
-      else
-       echo "Failed!"
-      fi
+     echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
+     exec_ipcop /bin/rm -rf /var/linuxmuster ; RC="$?"
+     put_ipcop /var/lib/linuxmuster-ipfire /var/linuxmuster ; [ "$?" != "0" ] && RC="$?"
+     if [ "$RC" = "0" ]; then
+      echo "Ok!"
      else
-	  echo "IPFire is not yet configured!"
-	  echo "You have to invoke the setup script"
-	  echo "$SETUPSCRIPT"
-	  echo "to prepare IPFire for use with linuxmuster.net!"
+      echo "Failed!"
+      exit 1
      fi
+
+     # remove lan subnet from proxy acls
+     subnets="/var/ipfire/proxy/advanced/acls/src_subnets.acl"
+     if exec_ipcop /bin/grep -q "$internalnet" "$subnets"; then
+      echo "Removing obsolete lan subnet from proxy acls."
+      exec_ipcop /bin/sed "/^$internalnet/d" -i "$subnets"
+     fi
+
+	 # repair ipfire path in ovpn.cnf (#200)
+	 ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
+	 if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
+	  echo "Fixing ifpire path in ovpn config."
+	  exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
+	 fi
+
+     # test for obsolete allowedmacs file
+     # if present do the whole mac to ip stuff
+     if [ -e "$CACHEDIR/allowedmacs" ]; then
+
+      echo "Removing obsolete mac based firewall stuff."
+      rm -f "$CACHEDIR/allowedmacs"
+
+      # convert macs to ips for ip based external firewall
+      searchstr="$(head -1 $BLOCKEDHOSTSINTERNET)"
+      if validmac "$searchstr"; then
+       echo "Converting blocked mac addresses to ips because external firewall has changed."
+       macs="$(cat $BLOCKEDHOSTSINTERNET)"
+       rm $BLOCKEDHOSTSINTERNET
+       touch $BLOCKEDHOSTSINTERNET
+       for i in $macs; do
+        if validip "$i"; then
+         echo "$i" >> $BLOCKEDHOSTSINTERNET
+        else
+         get_ip "$i"
+         echo "$RET" >> $BLOCKEDHOSTSINTERNET
+        fi
+       done
+
+       # remove banned mac files on ipfire
+       bannedmac="/var/ipfire/proxy/advanced/acls/src_banned_mac.acl"
+       exec_ipcop /bin/rm -f "$bannedmac"
+       exec_ipcop /usr/bin/touch "$bannedmac"
+       exec_ipcop /bin/chown nobody:nobody "$bannedmac"
+      fi
+
+     fi # allowed_macs
+
+     # reload firewall
+	 echo "Reloading firewall rules ..."
+     $SCRIPTSDIR/internet_on_off.sh || true
 
      ;;
 

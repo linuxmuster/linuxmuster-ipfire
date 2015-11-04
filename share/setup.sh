@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 24.06.2014
+# 03.07.2014
 # GPL v3
 #
 
@@ -62,9 +62,11 @@ if [ -n "$IPCOPBAK" ]; then
  mv "$BACKUPDIR/ipcop" "$BACKUPDIR/ipcop_old"
 fi
 
-# copy settings file
+# prepare necessary settings values for upload
 echo "Adding linuxmuster settings ..."
 cp "$NETWORKSETTINGS" "$UPLOADTMP/.settings"
+echo "internmask=$INTERNMASK" >> "$UPLOADTMP/.settings"
+echo "subnetmask=$SUBNETMASK" >> "$UPLOADTMP/.settings"
 
 # upload linuxmuster.net scripts and templates
 echo "Uploading linuxmuster.net's IPFire configuration scripts ..."
@@ -73,11 +75,11 @@ put_ipcop "$UPLOADTMP" /var/linuxmuster ; RC="$?"
 rm -rf "$UPLOADTMP"
 
 if [ "$RC" = "0" ]; then
- # necessary to update mac lists
+ # necessary to update ip lists
  echo "Reloading firewall rules ..."
  $SCRIPTSDIR/internet_on_off.sh
  echo "Starting setup ..."
- exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" ; RC="$?"
+ exec_ipcop "/var/linuxmuster/linuxmuster-ipfire-setup && /sbin/reboot" || RC="1"
  if [ "$RC" = "0" ]; then
   echo "Rebooting IPFire. Done!"
  else

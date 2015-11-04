@@ -1,4 +1,62 @@
-linuxmuster-ipfire (1.1.4-2ubuntu0) precise; urgency=low
+linuxmuster-ipfire (1.2.6-0ubuntu0) babo; urgency=low
+
+  * proxy auth fixes (closes #331):
+    - merged pull request #2 from fschuett
+    - fixes and additional improvements for reload_proxy in connection
+      to proxy auth and squid.conf rewrite.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Feb 2015 13:40:40 +0100
+
+linuxmuster-ipfire (1.2.5-0ubuntu0) babo; urgency=low
+
+  * Merged pull request #1 from jollyzsher, adds openvpn rule in firewall
+    config template (closes #310).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Thu, 30 Oct 2014 15:37:24 +0100
+
+linuxmuster-ipfire (1.2.4-0ubuntu0) precise-testing; urgency=low
+
+  * postinst:
+    - fixed minimum core level handling.
+    - fixed ip list update.
+  * setup templates:
+    - removed obsolete firewall input rule in port 113.
+    - fixed squid.conf due to missing unrestricted ip acls.
+  * setup.sh: fixed allowedips update.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 08 Jul 2014 15:18:38 +0200
+
+linuxmuster-ipfire (1.2.3-1ubuntu0) precise-testing; urgency=low
+
+  * added LDAPS rule for server to firewall config template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 28 May 2014 09:23:31 +0200
+
+linuxmuster-ipfire (1.2.3-0ubuntu0) precise-testing; urgency=low
+
+  * updates due to IPfire 2.15 core update 77 (closes #308).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 27 May 2014 14:12:21 +0200
+
+linuxmuster-ipfire (1.2.2-0ubuntu0) precise-testing; urgency=low
+
+  * updated proxy config templates due to IPfire 2.13 core update 73 (closes #241).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Nov 2013 15:46:57 +0100
+
+linuxmuster-ipfire (1.2.1-0ubuntu0) precise-testing; urgency=low
+
+  * added subnetting support.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 26 Nov 2013 11:48:45 +0100
+
+linuxmuster-ipfire (1.2.0-0ubuntu0) precise; urgency=low
+
+  * postinst: fixing ipfire path in ovpn.cnf (closes #200).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 16 Sep 2013 12:36:16 +0200
+
+ linuxmuster-ipfire (1.1.4-2ubuntu0) precise; urgency=low
 
   * setup:
     - added firewall outgoing rule.
@@ -46,11 +104,27 @@ linuxmuster-ipfire (1.1.2-0ubuntu0) precise; urgency=low
 
  -- Thomas Schmitt <thomas@linuxmuster.net>  Fri, 29 Nov 2013 11:12:32 +0100
 
+linuxmuster-ipfire (1.1.1-1ubuntu0) precise; urgency=low
+
+  * changed proxy access to an ip whitelist based setup:
+    - related postinst modifications.
+    - reload_proxy.sh:
+      - creates new acl file /var/ipfire/proxy/advanced/acls/src_allowed_ip.acl.
+      - updates src_allowed_ip.acl according to
+        /var/ipfire/outgoing/groups/ipgroups/allowedips.
+      - adds allowed_ips access acls to include.acl and squid.conf if missing.
+      - adds restricted_ips acls to squid.conf if missing.
+    - removed lan subnet acls from src_subnets.acl template.
+    - added acls for restricted_ips to squid.conf template.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 22 May 2013 16:55:49 +0200
+
 linuxmuster-ipfire (1.1.1-0ubuntu0) precise; urgency=low
 
+  * changed from mac to ip based rules.
   * postinst: fixing ipfire path in ovpn.cnf (closes #200).
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 16 Sep 2013 13:16:14 +0200
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 21 May 2013 19:11:01 +0200
 
 linuxmuster-ipfire (1.1.0-0ubuntu0) precise; urgency=low
 

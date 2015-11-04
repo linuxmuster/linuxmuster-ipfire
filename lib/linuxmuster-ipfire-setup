@@ -3,7 +3,7 @@
 # setup IPfire for linuxmuster.net
 #
 # <thomas@linuxmuster.net>
-# 25.05.2014
+# 26.05.2014
 # GPL v3
 #
 
@@ -62,6 +62,9 @@ sed -e "s/^BLUE_ADDRESS=.*/BLUE_ADDRESS=$ipcopblue.254/
         s/^ORANGE_NETMASK=.*/ORANGE_NETMASK=255.255.255.0/
         s/^ORANGE_BROADCAST=.*/ORANGE_BROADCAST=$ipcoporange.255/" -i "$ETHSETTINGS"
 
+# do subnetting stuff
+"$SETUPDIR/patch-subnet.sh" "$internalnet" "$internmask" "$broadcast" "$subnetgw" "$subnetmask" "$subnetbc" "$subnetting"
+
 # move server root's ssh key in place
 [ -d /root/.ssh ] || mkdir /root/.ssh
 [ -s "$SETUPDIR/authorized_keys" ] && mv "$SETUPDIR/authorized_keys" /root/.ssh/authorized_keys
@@ -77,6 +80,9 @@ fi
 
 # repair permissions
 "$SETUPDIR/repair.sh"
+
+# update proxy acls but do not reload service
+"$SETUPDIR/reload_proxy.sh" --noreload
 
 # remove settings file
 rm -f "$SETTINGS"
