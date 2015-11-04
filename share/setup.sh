@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 03.07.2014
+# 04.11.2015
 # GPL v3
 #
 
@@ -15,7 +15,7 @@ if [ -n "$first" ]; then
   stty echo
  fi
  [ -z "$password" ] && bailout "No password given!"
- mykey="$(cat /root/.ssh/id_rsa.pub)"
+ mykey="$(cat /root/.ssh/id_ecdsa.pub)"
  [ -z "$mykey" ] && bailout "No ssh key available!"
  if [ -s /root/.ssh/known_hosts ]; then
   for i in ipfire ipcop "$ipcopip"; do

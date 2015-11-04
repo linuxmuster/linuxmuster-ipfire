@@ -2,7 +2,7 @@
 # postinst script for linuxmuster-ipfire
 #
 # thomas@linuxmuster.net
-# 24.02.2015
+# 04.11.2015
 # GPL v3
 #
 # see: dh_installdeb(1)
@@ -25,12 +25,12 @@ set -e
 case "$1" in
     configure)
 
-     MINCORE="77"
+     MINCORE="94"
      echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
 
-	 [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
+     [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
 
-	 # do nothing if linuxmuster.net ist not yet installed
+     # do nothing if linuxmuster.net ist not yet installed
      [ -e "$INSTALLED" ] || exit 0
 
      . $HELPERFUNCTIONS
@@ -42,22 +42,36 @@ case "$1" in
       exit 0
      fi
 
-	 # test if firewall is IPFire, get current version
-	 ipfrel="$CACHEDIR/ipfire-release"
-	 if get_ipcop /etc/system-release "$ipfrel"; then
-	  curver="$(cat "$ipfrel" | awk '{ print $2 }')"
-	  curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
-	  echo "IPFire $curver core $curcore detected!"
-	  if [ "$curcore" -lt "$MINCORE" ]; then
-	   echo "Your current IPFire core update level is less then $MINCORE and therefore not supported. Please upgrade IPFire to core update level $MINCORE!"
-	  fi
-	 else
-	  echo "This is probably not an IPFire firewall!"
-	  echo "Don't forget to invoke the setup script"
-	  echo "$SETUPSCRIPT"
-	  echo "later when IPFire is installed!"
-	  exit 0
-	 fi
+     # test if firewall is IPFire, get current version
+     ipfrel="$CACHEDIR/ipfire-release"
+     if get_ipcop /etc/system-release "$ipfrel"; then
+      curver="$(cat "$ipfrel" | awk '{ print $2 }')"
+      curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
+      echo "IPFire $curver core $curcore detected!"
+      if [ "$curcore" -lt "$MINCORE" ]; then
+       echo "### Your current IPFire core update level is less then $MINCORE!"
+       echo "### Please upgrade your IPFire ASAP!"
+       upgrade_needed="yes"
+      fi
+     else
+      echo "This is probably not an IPFire firewall!"
+      echo "Don't forget to invoke the setup script"
+      echo "$SETUPSCRIPT"
+      echo "later when IPFire is installed!"
+      exit 0
+     fi
+
+     # test for ecdsa ssh key and upload it if necessary
+     if ! exec_ipcop grep -q ^ecdsa-sha2-nistp256 /root/.ssh/authorized_keys; then
+      echo -n "Uploading ecdsa key ... "
+      ecdsakey="/root/.ssh/id_ecdsa"
+      ecdsapubkey="$ecdsakey".pub
+      [ -e "$ecdsakey" ] || ssh-keygen -N '' -q -t ecdsa -f "$ecdsakey"
+      put_ipcop "$ecdsapubkey" "$ecdsapubkey"
+      exec_ipcop "cat $ecdsapubkey >> /root/.ssh/authorized_keys"
+      exec_ipcop "rm $ecdsapubkey"
+      echo "Done!"
+     fi
 
      # update linuxmuster.net scripts on IPFire
      echo -n "Uploading linuxmuster.net configuration scripts to IPFire ... "
@@ -67,7 +81,7 @@ case "$1" in
       echo "Ok!"
      else
       echo "Failed!"
-      exit 1
+      exit 0
      fi
 
      # remove lan subnet from proxy acls
@@ -77,12 +91,12 @@ case "$1" in
       exec_ipcop /bin/sed "/^$internalnet/d" -i "$subnets"
      fi
 
-	 # repair ipfire path in ovpn.cnf (#200)
-	 ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
-	 if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
-	  echo "Fixing ifpire path in ovpn config."
-	  exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
-	 fi
+     # repair ipfire path in ovpn.cnf (#200)
+     ovpncnf="/var/ipfire/ovpn/openssl/ovpn.cnf"
+     if exec_ipcop /bin/grep -q ipcop "$ovpncnf"; then
+      echo "Fixing ifpire path in ovpn config."
+      exec_ipcop /bin/sed -e "s/ipcop/ipfire/g" -i "$ovpncnf"
+     fi
 
      # test for obsolete allowedmacs file
      # if present do the whole mac to ip stuff
@@ -117,13 +131,19 @@ case "$1" in
      fi # allowed_macs
 
      # reload firewall
-	 echo "Reloading firewall rules ..."
-     $SCRIPTSDIR/internet_on_off.sh || true
-
+     if [ -z "$upgrade_needed" ]; then
+      echo -n "Reloading firewall rules ... "
+      if $SCRIPTSDIR/internet_on_off.sh &> /dev/null; then
+       echo "Done!"
+      else
+       echo "Failed!"
+      fi
+     else
+      echo "### Note: You have to run \"dpkg-reconfigure linuxmuster-ipfire\" after IPFire upgrade."
+     fi
      ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-	 ;;
+    abort-upgrade|abort-remove|abort-deconfigure) ;;
 
     *)
      echo "postinst called with unknown argument \`$1'" >&2

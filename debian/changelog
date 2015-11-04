@@ -1,3 +1,15 @@
+linuxmuster-ipfire (1.2.7-1ubuntu0) babo; urgency=low
+
+  * rebuild.
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 16:40:54 +0100
+
+linuxmuster-ipfire (1.2.7-0ubuntu0) babo; urgency=low
+
+  * added ecdsa ssh key support (closes #498).
+
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 15:55:40 +0100
+
 linuxmuster-ipfire (1.2.6-0ubuntu0) babo; urgency=low
 
   * proxy auth fixes (closes #331):
@@ -5,7 +17,7 @@ linuxmuster-ipfire (1.2.6-0ubuntu0) babo; urgency=low
     - fixes and additional improvements for reload_proxy in connection
       to proxy auth and squid.conf rewrite.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 25 Feb 2015 13:40:40 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Wed, 04 Nov 2015 15:23:09 +0100
 
 linuxmuster-ipfire (1.2.5-0ubuntu0) babo; urgency=low
 
