@@ -3,7 +3,7 @@
 # linuxmuster-ipfire wrapper script to invoke setup, backup and restore
 #
 # thomas@linuxmuster.net
-# 19.03.2013
+# 21.12.2015
 # GPL v3
 #
 
@@ -16,7 +16,7 @@ getopt $*
 
 header(){
  local opt="$1"
- local msg="# linuxmuster.net: IPfire $opt #"
+ local msg="# linuxmuster.net: IPFire $opt #"
  local chars="$(echo "$msg" | wc -m)"
  echo
  seq -s"#" $chars | tr -d '[:digit:]'

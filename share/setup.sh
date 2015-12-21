@@ -2,7 +2,7 @@
 # starts ipfire configuration setup for linuxmuster.net
 #
 # thomas@linuxmuster.net
-# 04.11.2015
+# 21.12.2015
 # GPL v3
 #
 
@@ -75,6 +75,8 @@ put_ipcop "$UPLOADTMP" /var/linuxmuster ; RC="$?"
 rm -rf "$UPLOADTMP"
 
 if [ "$RC" = "0" ]; then
+ # ensure directory exists on ipfire
+ exec_ipcop "mkdir -p /var/ipfire/proxy/advanced/acls ; chown nobody:nobody /var/ipfire/proxy/advanced/acls"
  # necessary to update ip lists
  echo "Reloading firewall rules ..."
  $SCRIPTSDIR/internet_on_off.sh

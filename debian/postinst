@@ -49,7 +49,7 @@ case "$1" in
       curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
       echo "IPFire $curver core $curcore detected!"
       if [ "$curcore" -lt "$MINCORE" ]; then
-       echo "### Your current IPFire core update level is less then $MINCORE!"
+       echo "### Your current IPFire core update level is less than $MINCORE!"
        echo "### Please upgrade your IPFire ASAP!"
        upgrade_needed="yes"
       fi
