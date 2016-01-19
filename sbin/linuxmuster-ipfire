@@ -30,6 +30,7 @@ usage() {
   echo "linuxmuster-ipfire --backup"
   echo "                   --restore"
   echo "                   --setup [--first] [--password=<password>]"
+  echo "                   --upgrade"
   echo "                   --help"
   echo
   echo "  backup:   Backs up IPFire settings to $BACKUPDIR/ipfire."
@@ -39,6 +40,7 @@ usage() {
   echo "            Together with --first param it does an initial setup"
   echo "            of passwordless ssh connection to IPFire first."
   echo "            If password is not given it will be asked."
+  echo "  upgrade:  Upgrades IPFire to latest supported core level."
   echo "  help:     Shows this help"
   echo
   exit 1
@@ -46,18 +48,28 @@ usage() {
 
 # test parameters
 [ -n "$help" ] && usage
-[ -n "$backup" -a -n "$restore" -a -n "$setup" ] && usage
-[ -n "$backup" -a -n "$restore" ] && usage
-[ -n "$restore" -a -n "$setup" ] && usage
+[ -n "$backup" -a -n "$restore" -a -n "$setup" -a -n "$upgrade" ] && usage
+
+[ -n "$backup" -a -n "$restore" -a -n "$upgrade" ] && usage
+[ -n "$restore" -a -n "$setup" -a -n "$upgrade" ] && usage
+[ -n "$backup" -a -n "$setup" -a -n "$upgrade" ] && usage
+
+[ -n "$backup" -a -n "$upgrade" ] && usage
+[ -n "$restore" -a -n "$upgrade" ] && usage
+[ -n "$setup" -a -n "$upgrade" ] && usage
+
 [ -n "$backup" -a -n "$setup" ] && usage
 [ -n "$backup" -a -n "$first" ] && usage
 [ -n "$restore" -a -n "$first" ] && usage
-[ -z "$backup" -a -z "$restore" -a -z "$setup" ] && usage
+[ -n "$upgrade" -a -n "$first" ] && usage
+
+[ -z "$backup" -a -z "$restore" -a -z "$setup" -a -z "$upgrade" ] && usage
 
 # get action
 [ -n "$backup" ] && action="backup"
 [ -n "$restore" ] && action="restore"
 [ -n "$setup" ] && action="setup"
+[ -n "$upgrade" ] && action="upgrade"
 
 # print script header
 header "$action"
