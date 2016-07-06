@@ -65,6 +65,9 @@ if [ "$newcore" -gt "$MAXCORE" ]; then
   exec_ipcop "sed -i 's/.*core_release.*/\$core_release=\"$MAXCORE\";/g' /opt/pakfire/db/lists/core-list.db"
 fi
 
+# check if pakfire is already running
+PAKPID="$(exec_ipcop_fb pidof pakfire)"
+
 # upgrade IPFire to latest supported version
 if [ ! -z "$PAKPID" ]; then
   bailout "there is already an update process running. Please run \"linuxmuster-ipfire --upgrade\" in serveral minutes again"
@@ -81,6 +84,8 @@ while [ $? -eq 255 ]
 
 # check if upgrade was successful
 if [ $? -eq 0 ]; then
+  #wait some seconds
+  sleep 5
   ipfrel="$CACHEDIR/ipfire-release"
   if get_ipcop /etc/system-release "$ipfrel"; then
     curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
