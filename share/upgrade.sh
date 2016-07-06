@@ -67,7 +67,7 @@ fi
 
 # upgrade IPFire to latest supported version
 if [ ! -z "$PAKPID" ]; then
-  bailout "there is already an update process running. Please run \"linuxmuster-ipfire --update\" in serveral minutes again"
+  bailout "there is already an update process running. Please run \"linuxmuster-ipfire --upgrade\" in serveral minutes again"
 fi 
 echo "upgrading IPFire ..."
 
