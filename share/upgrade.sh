@@ -88,13 +88,13 @@ if [ $? -eq 0 ]; then
       echo "... upgrade was successful"
       echo ""
     else
-      bailout "... upgrade failed"
+      bailout "... upgrade failed. Please run \"linuxmuster-ipfire --upgrade\" again."
     fi
   else
-    bailout "... upgrade failed"
+    bailout "... upgrade failed, no connection to ipfire. Please run \"linuxmuster-ipfire --upgrade\" again."
   fi
 else
-  bailout "... upgrade failed"
+  bailout "... upgrade failed. Try to run \"linuxmuster-ipfire --upgrade\" again.""
 fi
 
 # Rebooting if necessary
