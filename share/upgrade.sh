@@ -6,12 +6,6 @@
 # GPL v3
 #
 
-# zum Testen (d.h. ohne das Paket linuxmuster-base zu ändern)
-# execute a command on firewall width feedback
-#exec_ipcop_fb() {
-#  ssh -p 222 root@10.16.1.254 $*
-#}
-
 # get version
 MAXCORE="$(cat /var/lib/linuxmuster-ipfire/maxcore)"
 ipfrel="$CACHEDIR/ipfire-release"
