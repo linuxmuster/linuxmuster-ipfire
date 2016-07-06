@@ -99,7 +99,7 @@ if [ $? -eq 0 ]; then
     bailout "... upgrade failed, no connection to ipfire. Please run \"linuxmuster-ipfire --upgrade\" again."
   fi
 else
-  bailout "... upgrade failed. Try to run \"linuxmuster-ipfire --upgrade\" again.""
+  bailout "... upgrade failed. Try to run \"linuxmuster-ipfire --upgrade\" again."
 fi
 
 # Rebooting if necessary
