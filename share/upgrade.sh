@@ -6,12 +6,6 @@
 # GPL v3
 #
 
-# zum Testen (d.h. ohne das Paket linuxmuster-base zu ändern)
-# execute a command on firewall width feedback
-#exec_ipcop_fb() {
-#  ssh -p 222 root@10.16.1.254 $*
-#}
-
 # get version
 MAXCORE="$(cat /var/lib/linuxmuster-ipfire/maxcore)"
 ipfrel="$CACHEDIR/ipfire-release"
@@ -71,9 +65,12 @@ if [ "$newcore" -gt "$MAXCORE" ]; then
   exec_ipcop "sed -i 's/.*core_release.*/\$core_release=\"$MAXCORE\";/g' /opt/pakfire/db/lists/core-list.db"
 fi
 
+# check if pakfire is already running
+PAKPID="$(exec_ipcop_fb pidof pakfire)"
+
 # upgrade IPFire to latest supported version
 if [ ! -z "$PAKPID" ]; then
-  bailout "there is already an update process running. Please run \"linuxmuster-ipfire --update\" in serveral minutes again"
+  bailout "there is already an update process running. Please run \"linuxmuster-ipfire --upgrade\" in serveral minutes again"
 fi 
 echo "upgrading IPFire ..."
 
@@ -87,6 +84,8 @@ while [ $? -eq 255 ]
 
 # check if upgrade was successful
 if [ $? -eq 0 ]; then
+  #wait some seconds
+  sleep 5
   ipfrel="$CACHEDIR/ipfire-release"
   if get_ipcop /etc/system-release "$ipfrel"; then
     curcore="$(cat "$ipfrel" | awk '{ print $5 }' | sed 's/core//')"
@@ -94,13 +93,13 @@ if [ $? -eq 0 ]; then
       echo "... upgrade was successful"
       echo ""
     else
-      bailout "... upgrade failed"
+      bailout "... upgrade failed. Please run \"linuxmuster-ipfire --upgrade\" again."
     fi
   else
-    bailout "... upgrade failed"
+    bailout "... upgrade failed, no connection to ipfire. Please run \"linuxmuster-ipfire --upgrade\" again."
   fi
 else
-  bailout "... upgrade failed"
+  bailout "... upgrade failed. Try to run \"linuxmuster-ipfire --upgrade\" again."
 fi
 
 # Rebooting if necessary

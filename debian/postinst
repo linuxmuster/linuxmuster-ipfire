@@ -28,7 +28,7 @@ case "$1" in
      MINCORE="94"
      echo "$MINCORE" > /var/lib/linuxmuster-ipfire/mincore
 
-     MAXCORE="95"
+     MAXCORE="102"
      echo "$MAXCORE" > /var/lib/linuxmuster-ipfire/maxcore
 
      [ -e /usr/share/linuxmuster/config/dist.conf ] && . /usr/share/linuxmuster/config/dist.conf
