@@ -2,7 +2,7 @@ linuxmuster-ipfire (1.2.8-0ubuntu0) babo; urgency=low
 
   * setup.sh: ensure /var/ifpire/proxy/advanced/acls exists before internet_on_off is invoked.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Mon, 21 Dec 2015 17:00:28 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Jan 2016 16:16:40 +0100
 
 linuxmuster-ipfire (1.2.7-1ubuntu0) babo; urgency=low
 
