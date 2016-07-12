@@ -2,7 +2,7 @@ linuxmuster-ipfire (1.2.10-0ubuntu0) babo; urgency=low
 
   * Merged pull request #5 of FreeInMind.
 
- -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 19 Jan 2016 16:17:06 +0100
+ -- Thomas Schmitt <thomas@linuxmuster.net>  Tue, 12 Jul 2016 15:52:22 +0200
 
  linuxmuster-ipfire (1.2.9-0ubuntu0) babo; urgency=low
 
